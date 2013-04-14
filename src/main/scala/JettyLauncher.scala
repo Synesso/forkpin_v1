@@ -10,7 +10,7 @@ object JettyLauncher {
     val server = new Server(port)
     val context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS)
 
-    context.addFilter(classOf[ChessFilter], "/*", util.EnumSet.noneOf(classOf[DispatcherType]))
+    context.addServlet(classOf[ChessServlet], "/*")
     context.addServlet(classOf[DefaultServlet], "/")
     context.setResourceBase("src/main/webapp")
 
