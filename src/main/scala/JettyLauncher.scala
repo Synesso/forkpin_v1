@@ -1,5 +1,3 @@
-import java.util
-import javax.servlet.DispatcherType
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 
