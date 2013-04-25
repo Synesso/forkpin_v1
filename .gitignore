@@ -1,4 +1,6 @@
 .env
+.idea/*
+.idea_modules/
 target
 project/boot
 project/target
