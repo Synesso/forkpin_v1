@@ -32,8 +32,8 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     jade("index",
       "state" -> state,
       "clientId" -> clientId,
-      "pageTitle" -> "Welcome to Jade",
-      "headline" -> "Hello my pretties")
+      "pageTitle" -> "forkp.in",
+      "appName" -> appName)
   }
 
   post("/connect") {
@@ -74,7 +74,6 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
         (200, String.valueOf(people))
       }.getOrElse{(401, "Current user is not connected.")}
     }
-    logger.info("Returning %s - %s".format(code, message))
     status_=(code)
     message
   }

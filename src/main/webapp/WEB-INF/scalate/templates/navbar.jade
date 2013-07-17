@@ -1,0 +1,12 @@
+-@ val appName: String
+
+div{:class => "navbar navbar-inverse navbar-fixed-top"}
+  div{:class => "navbar-inner"}
+    div{:class => "container"}
+      a{:class => "brand", :href => "/"} #{appName}
+      div{:class => "nav-collapse collapse"}
+        ul(class="nav")
+          li(class="active")
+            a(href="#") Watch
+          li
+            a(href="#login") Log In
