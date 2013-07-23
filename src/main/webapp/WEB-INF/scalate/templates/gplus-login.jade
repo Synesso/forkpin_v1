@@ -65,12 +65,12 @@
        */
       disconnectServer: function() {
         // Revoke the server tokens
+        console.log(window.location.href + 'disconnect');
         $.ajax({
           type: 'POST',
-          url: window.location.href + '/disconnect',
+          url: window.location.href + 'disconnect',
           async: false,
           success: function(result) {
-            console.log('revoke response: ' + result);
             $('#authOps').hide();
             $('#profile').empty();
             $('#visiblePeople').empty();
