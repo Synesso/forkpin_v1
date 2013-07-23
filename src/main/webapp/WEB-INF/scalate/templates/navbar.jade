@@ -1,12 +1,21 @@
 -@ val appName: String
+-@ val clientId: String
 
 div{:class => "navbar navbar-inverse navbar-fixed-top"}
   div{:class => "navbar-inner"}
     div{:class => "container"}
-      a{:class => "brand", :href => "/"} #{appName}
+      a{:class => "brand", :href => "/", :style => "border: none;"} #{appName}
       div{:class => "nav-collapse collapse"}
-        ul(class="nav")
-          li(class="active")
-            a(href="#") Watch
+        ul{:class => "nav pull-right", :style => "top: 10px;"}
+          // li(class="active")
+          //   a(href="#") Watch
           li
-            a(href="#login") Log In
+            div{:id => "gConnect", :style => "display: none"}
+              button(class="g-signin"
+                data-scope="https://www.googleapis.com/auth/plus.login"
+                data-requestvisibleactions="http://schemas.google.com/AddActivity"
+                data-clientId=clientId
+                data-accesstype="offline"
+                data-callback="onSignInCallback"
+                data-theme="dark"
+                data-cookiepolicy="single_host_origin")

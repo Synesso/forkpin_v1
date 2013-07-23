@@ -12,20 +12,12 @@ html(lang="en")
     script(type="text/javascript" src="js/bootstrap.min.js")
     link(href="css/bootstrap.min.css" rel="stylesheet")
     style body { padding-top: 60px; }
-    link(href="css/bootstrap-responsive.min.css" rel="stylesheet")
+    // link(href="css/bootstrap-responsive.min.css" rel="stylesheet")
+    link(href="css/flat-ui.css" rel="stylesheet")
   body
     - include("navbar.jade")
     div{:id => "gAuthUnknown"}
       p waiting ...
-    div{:id => "gConnect", :style => "display: none"}
-      button(class="g-signin"
-        data-scope="https://www.googleapis.com/auth/plus.login"
-        data-requestvisibleactions="http://schemas.google.com/AddActivity"
-        data-clientId=clientId
-        data-accesstype="offline"
-        data-callback="onSignInCallback"
-        data-theme="dark"
-        data-cookiepolicy="single_host_origin")
     div{:id => "gDisconnect", :style => "display: none"}
       button
         p Sign Out
