@@ -32,7 +32,6 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     authorisedJsonResponse(_ => Ok(reason = "Current user is already connected"),
       if (!params.get("state").equals(session.get("state"))) Unauthorized(reason = "Invalid state parameter")
       else {
-        session.removeAttribute("state")
         tokenInfoFor(request).fold({
           exception => InternalServerError(reason = s"Failed to read token data from Google: ${exception.getMessage}")
         }, {

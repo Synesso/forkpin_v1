@@ -6,7 +6,7 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
     div{:class => "container"}
       a{:class => "brand", :href => "/", :style => "border: none;"} #{appName}
       div{:class => "nav-collapse collapse"}
-        ul{:class => "nav pull-right", :style => "top: 10px;"}
+        ul{:class => "nav pull-right", :style => "top: 5px;"}
           // li(class="active")
           //   a(href="#") Watch
           li
@@ -20,21 +20,17 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
                 data-theme="dark"
                 data-cookiepolicy="single_host_origin")
           li
-            div{:id => "userMenu", :class => "span2"}
-              select{:name => "userActions", :value => "active", :class => "select-block span2", :style => "display: none"}
-                option{:value => "0", :selected => true} active
-                option{:value => "1"} inactive
-                option{:value => "2"} inactive
-              div{:class => "btn-group select select-block span2", :style => "margin-top: 0px"}
-                i{:class => "dropdown-arrow dropdown-arrow-inverse"}
-                button(class="btn dropdown-toggle clearfix btn-primary" data-toggle="dropdown" style="padding-top: 5px; padding-bottom: 5px;")
-                  span{:class => "filter-option pull-left"}
-                  = "UserName"
-                  span{:class => "caret"}
-                ul{:class => "dropdown-menu dropdown-inverse", :role => "menu"}
-                  li{:rel => "0", :class => "selected"}
-                    a{:class => "active", :tabindex => "-1", :href => "#"} active
-                  li{:rel => "1"}
-                    a{:tabindex => "-1", :href => "#"} inactive
-                  li{:rel => "2"}
-                    a{:tabindex => "-1", :href => "#"} inactive
+            div{:id => "userMenu", :class => "button-group", :style => "display: none;"}
+              button(class="btn btn-success dropdown-toggle" data-toggle="dropdown" style="margin-top: 0px")
+                span{:id => "userName"}
+                span{:class => "caret"}
+              ul{:class => "dropdown-menu"}
+                li
+                  a(href="#") Action 1
+                li
+                  a(href="#") Action 2
+                li
+                  a(href="#") Action 3
+                li{:class => "divider"}
+                li
+                  a{:href => "#", :id => "gDisconnect"} Log Out
