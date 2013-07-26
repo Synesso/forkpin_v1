@@ -24,7 +24,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     jade("index",
       "state" -> state,
       "clientId" -> clientId,
-      "pageTitle" -> "forkp.in",
+      "pageTitle" -> "chess wip",
       "appName" -> appName)
   }
 
