@@ -22,7 +22,7 @@ object Persistent {
   }
 
   val driver = sys.env("DATABASE_DRIVER")
-  val url = sys.env("DATABASE_URL")
+  val url = sys.env("DATABASE_JDBC_URL")
   val user = sys.env("DATABASE_USERNAME")
   val password = sys.env("DATABASE_USERPWD")
   val database = Database.forURL(url, driver = driver, user = user, password = password)
