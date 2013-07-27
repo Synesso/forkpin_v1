@@ -13,6 +13,8 @@ seq(webSettings :_*)
 classpathTypes ~= (_ + "orbit")
 
 libraryDependencies ++= Seq(
+  "com.typesafe.slick" % "slick_2.10" % "1.0.1",
+  "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" % "scalatra_2.10" % "2.2.1",
   "org.scalatra" % "scalatra-scalate_2.10" % "2.2.1",
   "org.scalatra" % "scalatra-json_2.10" % "2.2.1",
@@ -34,3 +36,8 @@ libraryDependencies ++= Seq(
 resolvers += "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
 
 seq(StartScriptPlugin.startScriptForClassesSettings: _*)
+
+ivyScala ~= { (is: Option[IvyScala]) =>
+  for(i <- is) yield
+    i.copy(checkExplicit = false)
+}

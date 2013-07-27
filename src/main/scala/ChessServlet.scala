@@ -17,6 +17,8 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   val clientId = sys.env.getOrElse("CLIENT_ID", "unknown_client_id")
   val clientSecret = sys.env.getOrElse("CLIENT_SECRET", "unknown_client_secret")
 
+  Persistent.create()
+
   get("/") {
     contentType="text/html"
     val state = new BigInteger(130, new SecureRandom).toString(32)
@@ -41,6 +43,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
               session.setAttribute("token", tokenResponse)
+              Persistent.connectedUser(tokenInfo.getUserId)
               Ok(reason = "Successfully connected user")
             }
         })
@@ -80,6 +83,12 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   after() {
     val queryString = if (request.getQueryString == null) "" else s"${request.getQueryString} "
     logger.info(s"${request.getMethod} ${request.getRequestURI} $queryString=> ${response.status}")
+  }
+
+  error { case e =>
+    logger.error("Gone south: ", e)
+    status_=(500)
+    <span>{e.getMessage}</span>
   }
 
   private def token = session.get("token")
