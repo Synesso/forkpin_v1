@@ -39,7 +39,7 @@ var helper = (function() {
                 }
                 helper.connectServer(profile.id);
                 divs.userName.append(profile.displayName);
-                divs.userProfile.append('<img src="' + profile.image.url + '" class="img-circle"/>');
+                // divs.userProfile.append('<img src="' + profile.image.url + '" class="img-circle"/>');
                 $('#gConnect').hide();
                 $('#userMenu').show();
             });
@@ -80,7 +80,7 @@ var helper = (function() {
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(result) {
                     console.log(result);
-                    helper.people();
+                    // helper.people();
                 },
                 error: function(e) {
                     console.log('error connecting:', e.status, e.statusText);
@@ -121,13 +121,17 @@ var helper = (function() {
     };
 })();
 
-/**
- * Perform jQuery initialization and check to ensure that you updated your
- * client ID.
- */
+var board;
+var fen = '';
+
 $(document).ready(function() {
     $('#gDisconnect').click(helper.disconnectServer);
+    board = new ChessBoard('chessboard', fen);
+    $('#chessboard').fadeTo('slow', 0.25);
+});
 
+$(window).resize(function() {
+    board = new ChessBoard('chessboard', fen);
 });
 
 /**

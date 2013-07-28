@@ -7,8 +7,6 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
       a{:class => "brand", :href => "/", :style => "border: none;"} #{appName}
       div{:class => "nav-collapse collapse"}
         ul{:class => "nav pull-right", :style => "top: 5px;"}
-          // li(class="active")
-          //   a(href="#") Watch
           li
             div{:id => "gConnect", :style => "display: none"}
               button(class="g-signin"
@@ -25,12 +23,12 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
                 span{:id => "userName"}
                 span{:class => "caret"}
               ul{:class => "dropdown-menu"}
-                li
-                  a(href="#") Action 1
-                li
-                  a(href="#") Action 2
-                li
-                  a(href="#") Action 3
-                li{:class => "divider"}
+                // li
+                //   a(href="#") Action 1
+                // li
+                //   a(href="#") Action 2
+                // li
+                //   a(href="#") Action 3
+                // li{:class => "divider"}
                 li
                   a{:href => "#", :id => "gDisconnect"} Log Out
