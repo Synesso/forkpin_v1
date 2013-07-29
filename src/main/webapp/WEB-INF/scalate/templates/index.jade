@@ -1,6 +1,10 @@
-div{:id => "userProfile"}
-div{:id => "visiblePeople"}
 div{:class => "container-fluid"}
   div{:class => "row-fluid"}
-    div{:id => "chessboard", :class => "offset3 span6 centering"}
+    div{:id => "opponentPanel", :class => "offset3 span6 well", :style => "margin-bottom: 0px;"}
+      img{:src => ""}
+      button{:class => "btn btn-primary offset3 span6", :type => "button"} Challenge!
+  div{:class => "row-fluid"}
+    div{:id => "chessboard", :style => "display: table; margin: 0 auto; height: 500px; width: 500px;"}
+  div{:class => "row-fluid"}
+    div{:id => "selfPanel", :class => "offset3 span6 centering well"}
 

@@ -1,6 +1,6 @@
 var helper = (function() {
     var authResult = undefined;
-    var divs = {'userName': $('#userName'), 'userProfile': $('#userProfile')};
+    var divs = {'userName': $('#userName'), 'selfPanel': $('#selfPanel'), 'opponentPanel': $('#opponentPanel')};
 
     return {
         /**
@@ -32,14 +32,14 @@ var helper = (function() {
             var request = gapi.client.plus.people.get( {'userId' : 'me'} );
             request.execute( function(profile) {
                 divs.userName.empty();
-                divs.userProfile.empty();
+                divs.selfPanel.empty();
                 if (profile.error) {
-                    divs.userProfile.append(profile.error);
+                    divs.selfPanel.append(profile.error);
                     return;
                 }
                 helper.connectServer(profile.id);
                 divs.userName.append(profile.displayName);
-                // divs.userProfile.append('<img src="' + profile.image.url + '" class="img-circle"/>');
+                divs.selfPanel.append('<img src="' + profile.image.url + '" class="img-circle"/>');
                 $('#gConnect').hide();
                 $('#userMenu').show();
             });
@@ -72,7 +72,7 @@ var helper = (function() {
          *   https://developers.google.com/+/web/signin/server-side-flow
          */
         connectServer: function(gplusId) {
-            url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId
+            url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId;
             console.log('connectServer -> ', url);
             $.ajax({
                 type: 'POST',
