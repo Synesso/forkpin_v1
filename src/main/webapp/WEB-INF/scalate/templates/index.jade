@@ -2,7 +2,8 @@ div{:class => "container-fluid"}
   div{:class => "row-fluid"}
     div{:id => "opponentPanel", :class => "offset3 span6 well", :style => "margin-bottom: 0px;"}
       img{:src => ""}
-      button{:class => "btn btn-primary offset3 span6", :type => "button"} Challenge!
+      button{:id => "challengeButton", :class => "btn btn-primary offset3 span6", :type => "button"} Challenge!
+      // todo - this button should not appear until user is in the session.
   div{:class => "row-fluid"}
     div{:id => "chessboard", :style => "display: table; margin: 0 auto; height: 500px; width: 500px;"}
   div{:class => "row-fluid"}

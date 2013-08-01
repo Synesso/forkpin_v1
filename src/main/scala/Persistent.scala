@@ -1,24 +1,51 @@
-import java.sql.{Timestamp, Date}
+import java.sql.Timestamp
 import org.slf4j.LoggerFactory
 import scala.slick.driver.PostgresDriver.simple._
 import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
 
+
+case class User(gPlusId: String, firstSeen: Timestamp, lastSeen: Timestamp)
+case class Game(id: Option[Int], whiteId: String, blackId: String)
+case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
+
 object Persistent {
 
   val logger =  LoggerFactory.getLogger(getClass)
 
-  object Users extends Table[(String, Timestamp, Timestamp)]("users") {
+  val tables = Seq(Games, Users, Challenges)
+
+  object Users extends Table[User]("users") {
     def gPlusId = column[String]("gplus_id", O.PrimaryKey)
     def firstSeen = column[Timestamp]("first_login")
     def lastSeen = column[Timestamp]("last_login")
-    def * = gPlusId ~ firstSeen ~ lastSeen
+    def * = gPlusId ~ firstSeen ~ lastSeen <> (User, User.unapply _)
   }
 
-  object Games extends Table[(String)]("games") {
-    def rarr = column[String]("rarr")
-    def * = rarr
+  object Games extends Table[Game]("games") {
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def whiteId = column[String]("white_id")
+    def blackId = column[String]("black_id")
+    def * = id.? ~ whiteId ~ blackId <> (Game, Game.unapply _)
+    def white = foreignKey("white_fk", whiteId, Users)(_.gPlusId)
+    def black = foreignKey("black_fk", blackId, Users)(_.gPlusId)
+    def forInsert = whiteId ~ blackId <> (
+      {t => Game(None, t._1, t._2)},
+      {g: Game => Some((g.whiteId, g.blackId))})
+  }
+
+  object Challenges extends Table[Challenge]("challenges") {
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def challengerId = column[String]("challenger_id")
+    def challengedId = column[Option[String]]("challenged_id")
+    def created = column[Timestamp]("created")
+    def * = id.? ~ challengerId ~ challengedId ~ created <> (Challenge, Challenge.unapply _)
+    def challenger = foreignKey("challenger_fk", challengerId, Users)(_.gPlusId)
+    def challenged = foreignKey("challenged_fk", challengedId, Users)(_.gPlusId)
+    def forInsert = challengerId ~ challengedId ~ created <> (
+      {t => Challenge(None, t._1, t._2, now)},
+      {c: Challenge => Some((c.challengerId, c.challengedId, now))})
   }
 
   val driver = sys.env("DATABASE_DRIVER")
@@ -28,13 +55,13 @@ object Persistent {
   val database = Database.forURL(url, driver = driver, user = user, password = password)
 
   def create() = database withSession {
-    val requiredTables = Seq(Games, Users)
-    if (sys.env.contains("DATABASE_FORCE_CREATE")) {
-      logger.info(s"Dropping $requiredTables")
-      requiredTables.map(_.ddl).reduceLeft(_ ++ _).drop
-    }
     val existingTables = MTable.getTables.list().map(_.name.name)
-    val tablesToCreate = requiredTables.filterNot(t => existingTables.contains(t.tableName))
+    if (sys.env.contains("DATABASE_FORCE_CREATE")) {
+      logger.info(s"Dropping $tables")
+      val ddls = tables.filter(t => existingTables.contains(t.tableName)).map(_.ddl)
+      if (!ddls.isEmpty) ddls.reduceLeft(_ ++ _).drop
+    }
+    val tablesToCreate = tables.filterNot(t => existingTables.contains(t.tableName))
     logger.info(s"Creating $tablesToCreate")
     val ddl: Option[DDL] = tablesToCreate.foldLeft(None: Option[DDL]){(ddl, table) =>
       ddl match {
@@ -47,12 +74,28 @@ object Persistent {
 
   def connectedUser(gPlusId: String) = database withSession {
     logger.info(s"Registering $gPlusId")
-    val now = new Timestamp(System.currentTimeMillis)
-    val q = for { u <- Users if u.gPlusId === gPlusId } yield u.lastSeen
-    q.update(now) match {
-      case 0 => Users.insert((gPlusId, now, now))
-      case _ => Unit
+    val userQuery = Query(Users).filter(_.gPlusId === gPlusId)
+    userQuery.firstOption.map{u =>
+      Users.filter(_.gPlusId === gPlusId).map(_.lastSeen).update(now)
+      u.copy(lastSeen = now)
+    }.getOrElse{
+      val u = User(gPlusId, now, now)
+      Users.insert(u)
+      u
     }
   }
+
+  def createChallenge(user: User): Either[Challenge, Game] = database withSession {
+    logger.info(s"Received open challenge from User(${user.gPlusId})")
+    val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)
+    challengeQuery.firstOption.map{c =>
+      Query(Challenges).filter(_.id === c.id).delete
+      Right(Games.forInsert returning Games insert Game(None, user.gPlusId, c.challengerId)) // todo - randomise white/black
+    }.getOrElse{
+      Left(Challenges.forInsert returning Challenges insert Challenge(None, user.gPlusId, None, now))
+    }
+  }
+
+  def now = new Timestamp(System.currentTimeMillis)
 
 }

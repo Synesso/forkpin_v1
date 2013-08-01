@@ -79,7 +79,6 @@ var helper = (function() {
                 url: url,
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(result) {
-                    console.log(result);
                     // helper.people();
                 },
                 error: function(e) {
@@ -102,8 +101,7 @@ var helper = (function() {
                 },
                 error: function(e) {
                     console.log('error getting people list', e);
-                },
-                processData: false
+                }
             });
         },
         /**
@@ -117,6 +115,20 @@ var helper = (function() {
                 person = people.items[personIndex];
                 $('#visiblePeople').append('<img src="' + person.image.url + '" title="' + person.displayName + '">');
             }
+        },
+
+        issueChallenge: function() {
+            $.ajax({
+                type: 'GET',
+                url: window.location.origin + '/challenge',
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function(result) {
+                    console.log('challenge issued:', result);
+                },
+                error: function(e) {
+                    console.log('error issuing challenge', e);
+                }
+            })
         }
     };
 })();
@@ -128,6 +140,7 @@ $(document).ready(function() {
     $('#gDisconnect').click(helper.disconnectServer);
     board = new ChessBoard('chessboard', fen);
     $('#chessboard').fadeTo('slow', 0.25);
+    $('#challengeButton').click(helper.issueChallenge);
 });
 
 $(window).resize(function() {

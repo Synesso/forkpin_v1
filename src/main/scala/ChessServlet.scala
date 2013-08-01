@@ -43,7 +43,8 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
               session.setAttribute("token", tokenResponse)
-              Persistent.connectedUser(tokenInfo.getUserId)
+              val user = Persistent.connectedUser(tokenInfo.getUserId)
+              session.setAttribute("user", user)
               Ok(reason = "Successfully connected user")
             }
         })
@@ -58,6 +59,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
       }, {
         response =>
           session.remove("token")
+          session.remove("user")
           Ok(reason = "Successfully disconnected user")
       })
     }
@@ -73,6 +75,13 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     }
   }
 
+  get("/challenge") {
+    authorisedJsonResponse {token =>
+      val challengeOrGame = Persistent.createChallenge(user)
+      Ok(reason = s"Created $challengeOrGame", body = challengeOrGame)
+    }
+  }
+
   notFound {
     findTemplate(requestPath) map { path =>
       contentType = "text/html"
@@ -80,10 +89,12 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     } orElse serveStaticResource() getOrElse resourceNotFound()
   }
 
+/* todo - not needed
   after() {
     val queryString = if (request.getQueryString == null) "" else s"${request.getQueryString} "
     logger.info(s"${request.getMethod} ${request.getRequestURI} $queryString=> ${response.status}")
   }
+*/
 
   error { case e =>
     logger.error("Gone south: ", e)
@@ -92,6 +103,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   }
 
   private def token = session.get("token")
+  private def user = session("user").asInstanceOf[User]
 
   private def authorisedJsonResponse(result: (Token) => ActionResult): ActionResult = {
     authorisedJsonResponse(result, Unauthorized("Current user is not connected."))
