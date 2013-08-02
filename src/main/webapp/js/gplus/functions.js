@@ -140,7 +140,7 @@ $(document).ready(function() {
     $('#gDisconnect').click(helper.disconnectServer);
     board = new ChessBoard('chessboard', fen);
     $('#chessboard').fadeTo('slow', 0.25);
-    $('#challengeButton').click(helper.issueChallenge);
+    $('#playButton').click(helper.issueChallenge);
 });
 
 $(window).resize(function() {

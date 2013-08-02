@@ -55,11 +55,13 @@ object Persistent {
   val database = Database.forURL(url, driver = driver, user = user, password = password)
 
   def create() = database withSession {
+    import scala.slick.jdbc.{StaticQuery => Q}
     val existingTables = MTable.getTables.list().map(_.name.name)
     if (sys.env.contains("DATABASE_FORCE_CREATE")) {
-      logger.info(s"Dropping $tables")
-      val ddls = tables.filter(t => existingTables.contains(t.tableName)).map(_.ddl)
-      if (!ddls.isEmpty) ddls.reduceLeft(_ ++ _).drop
+      tables.filter(t => existingTables.contains(t.tableName)).foreach{t =>
+        logger.info(s"Dropping $t")
+        Q.updateNA(s"drop table ${t.tableName} cascade").execute
+      }
     }
     val tablesToCreate = tables.filterNot(t => existingTables.contains(t.tableName))
     logger.info(s"Creating $tablesToCreate")

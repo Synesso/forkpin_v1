@@ -89,13 +89,6 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     } orElse serveStaticResource() getOrElse resourceNotFound()
   }
 
-/* todo - not needed
-  after() {
-    val queryString = if (request.getQueryString == null) "" else s"${request.getQueryString} "
-    logger.info(s"${request.getMethod} ${request.getRequestURI} $queryString=> ${response.status}")
-  }
-*/
-
   error { case e =>
     logger.error("Gone south: ", e)
     status_=(500)
