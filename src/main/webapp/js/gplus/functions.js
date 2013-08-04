@@ -123,28 +123,65 @@ var helper = (function() {
                 url: window.location.origin + '/challenge',
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(result) {
-                    console.log('challenge issued:', result);
+                    if (result.hasOwnProperty('fen')) {
+                        helper.loadGame(result);
+                    } else {
+                        helper.challengeCreated(result);
+                    }
                 },
                 error: function(e) {
                     console.log('error issuing challenge', e);
                 }
             })
+        },
+
+        loadGame: function(game) {
+            console.log('loading game', game);
+            $('#chessboard').fadeTo('slow', 1.0);
+            board.position(game.fen);
+        },
+
+        challengeCreated: function(challenge) {
+            console.log('challenge created', challenge);
         }
     };
 })();
 
 var board;
-var fen = '';
+var game;
+
+var dragStartEvent = function(source, piece, position, orientation) {
+    return game.moves({square: source}).length > 0;
+};
+
+var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation) {
+    var result = game.move({from: from, to: to});
+    var validMove = result != null;
+    console.log("Moving from " + from + " to " + to + " is " + (validMove ? "" : "in") + "valid");
+    if (validMove) {
+        // todo - transmit move to the server
+        return true;
+    }
+    return 'snapback';
+};
+
+var snapEndEvent = function() {
+    board.position(game.fen());
+};
+
 
 $(document).ready(function() {
     $('#gDisconnect').click(helper.disconnectServer);
-    board = new ChessBoard('chessboard', fen);
-    $('#chessboard').fadeTo('slow', 0.25);
     $('#playButton').click(helper.issueChallenge);
-});
+    game = new Chess();
+    game.san = function() {
+        var fen = this.fen();
+        return fen.substring(0, fen.indexOf(' '));
+    };
+    board = new ChessBoard('chessboard', {draggable: true, position: '', snapbackSpeed: 'slow',
+        onDragStart: dragStartEvent, onDrop: dropEvent, onSnapEnd: snapEndEvent});
 
-$(window).resize(function() {
-    board = new ChessBoard('chessboard', fen);
+    $('#chessboard').fadeTo('slow', 0.25);
 });
 
 /**

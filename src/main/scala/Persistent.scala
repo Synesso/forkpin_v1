@@ -7,7 +7,7 @@ import scala.slick.lifted.DDL
 
 
 case class User(gPlusId: String, firstSeen: Timestamp, lastSeen: Timestamp)
-case class Game(id: Option[Int], whiteId: String, blackId: String)
+case class Game(id: Option[Int], whiteId: String, blackId: String, fen: String = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
 case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
 
 object Persistent {
@@ -27,12 +27,13 @@ object Persistent {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def whiteId = column[String]("white_id")
     def blackId = column[String]("black_id")
-    def * = id.? ~ whiteId ~ blackId <> (Game, Game.unapply _)
+    def fen = column[String]("fen")
+    def * = id.? ~ whiteId ~ blackId ~ fen <> (Game, Game.unapply _)
     def white = foreignKey("white_fk", whiteId, Users)(_.gPlusId)
     def black = foreignKey("black_fk", blackId, Users)(_.gPlusId)
-    def forInsert = whiteId ~ blackId <> (
-      {t => Game(None, t._1, t._2)},
-      {g: Game => Some((g.whiteId, g.blackId))})
+    def forInsert = whiteId ~ blackId ~ fen <> (
+      {t => Game(None, t._1, t._2, t._3)},
+      {g: Game => Some((g.whiteId, g.blackId, g.fen))})
   }
 
   object Challenges extends Table[Challenge]("challenges") {
@@ -56,7 +57,7 @@ object Persistent {
 
   def create() = database withSession {
     import scala.slick.jdbc.{StaticQuery => Q}
-    val existingTables = MTable.getTables.list().map(_.name.name)
+    def existingTables = MTable.getTables.list().map(_.name.name)
     if (sys.env.contains("DATABASE_FORCE_CREATE")) {
       tables.filter(t => existingTables.contains(t.tableName)).foreach{t =>
         logger.info(s"Dropping $t")
