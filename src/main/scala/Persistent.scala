@@ -5,9 +5,8 @@ import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
 
-
 case class User(gPlusId: String, firstSeen: Timestamp, lastSeen: Timestamp)
-case class Game(id: Option[Int], whiteId: String, blackId: String, fen: String = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+case class Game(id: Option[Int], whiteId: String, blackId: String, fen: String = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
 
 object Persistent {

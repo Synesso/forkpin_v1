@@ -82,6 +82,14 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     }
   }
 
+  post("/move") {
+    authorisedJsonResponse {token =>
+      val (game, from, to) = (params("gameId"), params("from"), params("to"))
+      logger.info(s"$game, $from -> $to")
+      Ok()
+    }
+  }
+
   notFound {
     findTemplate(requestPath) map { path =>
       contentType = "text/html"

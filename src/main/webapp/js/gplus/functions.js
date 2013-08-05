@@ -1,3 +1,4 @@
+// todo - this is in the wrong folder
 var helper = (function() {
     var authResult = undefined;
     var divs = {'userName': $('#userName'), 'selfPanel': $('#selfPanel'), 'opponentPanel': $('#opponentPanel')};
@@ -157,13 +158,24 @@ var movingPiece = {
 var dragStartEvent = function(source, piece, position, orientation) {
     movingPiece.validDestinations = $.map(game.moves({square: source}), function(s) { return s.substring(s.length -2); });
     return movingPiece.validDestinations.length > 0;
-}
+};
 
 var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation) {
     var result = game.move({from: from, to: to});
     var validMove = result != null;
     if (validMove) {
-        // todo - transmit move to the server
+        $.ajax({
+            type: 'POST',
+            url: window.location.origin + '/move?gameId=1&from=' + from + '&to=' + to,
+            contentType: 'application/octet-stream; charset=utf-8',
+            success: function(result) {
+                console.log('ok posting move', result);
+            },
+            error: function(e) {
+                console.log('error posting move', e);
+            }
+        });
+        // todo - OK to return control so soon?
         return false;
     }
     return 'snapback';
