@@ -160,13 +160,19 @@ var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation)
     console.log("Moving from " + from + " to " + to + " is " + (validMove ? "" : "in") + "valid");
     if (validMove) {
         // todo - transmit move to the server
-        return true;
+        return false;
     }
     return 'snapback';
 };
 
 var snapEndEvent = function() {
-    board.position(game.fen());
+    console.log(board.fen());
+    console.log(game.san());
+    if (board.fen() !== game.san()) {
+        board.position(game.san());
+    }
+/*
+*/
 };
 
 
@@ -178,8 +184,15 @@ $(document).ready(function() {
         var fen = this.fen();
         return fen.substring(0, fen.indexOf(' '));
     };
-    board = new ChessBoard('chessboard', {draggable: true, position: '', snapbackSpeed: 'slow',
-        onDragStart: dragStartEvent, onDrop: dropEvent, onSnapEnd: snapEndEvent});
+
+    board = new ChessBoard('chessboard', {
+        draggable: true,
+        snapbackSpeed: 'fast',
+        onDragStart: dragStartEvent,
+        onDrop: dropEvent,
+        onSnapEnd: snapEndEvent,
+        showErrors: 'true'
+    });
 
     $('#chessboard').fadeTo('slow', 0.25);
 });
