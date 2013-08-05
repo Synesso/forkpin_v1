@@ -150,14 +150,18 @@ var helper = (function() {
 var board;
 var game;
 
-var dragStartEvent = function(source, piece, position, orientation) {
-    return game.moves({square: source}).length > 0;
+var movingPiece = {
+    validDestinations: []
 };
+
+var dragStartEvent = function(source, piece, position, orientation) {
+    movingPiece.validDestinations = $.map(game.moves({square: source}), function(s) { return s.substring(s.length -2); });
+    return movingPiece.validDestinations.length > 0;
+}
 
 var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation) {
     var result = game.move({from: from, to: to});
     var validMove = result != null;
-    console.log("Moving from " + from + " to " + to + " is " + (validMove ? "" : "in") + "valid");
     if (validMove) {
         // todo - transmit move to the server
         return false;
@@ -171,10 +175,7 @@ var snapEndEvent = function() {
     if (board.fen() !== game.san()) {
         board.position(game.san());
     }
-/*
-*/
 };
-
 
 $(document).ready(function() {
     $('#gDisconnect').click(helper.disconnectServer);
@@ -191,6 +192,7 @@ $(document).ready(function() {
         onDragStart: dragStartEvent,
         onDrop: dropEvent,
         onSnapEnd: snapEndEvent,
+        movingPiece: movingPiece,
         showErrors: 'true'
     });
 

@@ -1196,15 +1196,21 @@ var updateDraggedPiece = function(x, y) {
   // do nothing if the location has not changed
   if (location === DRAGGED_PIECE_LOCATION) return;
 
+  console.log("Moving piece valid destinations:", cfg.movingPiece.validDestinations);
+  console.log("Current location:", location);
+
   // remove highlight from previous square
   if (validSquare(DRAGGED_PIECE_LOCATION) === true) {
     $('#' + SQUARE_ELS_IDS[DRAGGED_PIECE_LOCATION])
       .removeClass(CSS.highlight2);
   }
 
-  // add highlight to new square
-  if (validSquare(location) === true) {
-    $('#' + SQUARE_ELS_IDS[location]).addClass(CSS.highlight2);
+  if (cfg.movingPiece.validDestinations.indexOf(location) >= 0) {
+
+    // add highlight to new square
+    if (validSquare(location) === true) {
+      $('#' + SQUARE_ELS_IDS[location]).addClass(CSS.highlight2);
+    }
   }
 
   // run onDragMove
