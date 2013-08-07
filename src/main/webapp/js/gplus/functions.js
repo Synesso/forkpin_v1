@@ -174,6 +174,7 @@ var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation)
             error: function(e) {
                 console.log('error posting move', e);
             }
+            // todo - post with data instead of query params?
         });
         // todo - OK to return control so soon?
         return false;

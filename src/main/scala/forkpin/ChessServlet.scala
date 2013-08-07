@@ -1,6 +1,8 @@
+package forkpin
+
+import _root_.gplus.{Token, GPlusOperations}
 import com.google.api.client.googleapis.auth.oauth2.{GoogleTokenResponse, GoogleCredential}
 import com.google.api.services.plus.Plus
-import gplus.{Token, GPlusOperations}
 import java.math.BigInteger
 import java.security.SecureRandom
 import org.scalatra._
@@ -84,9 +86,13 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
 
   post("/move") {
     authorisedJsonResponse {token =>
-      val (game, from, to) = (params("gameId"), params("from"), params("to"))
-      logger.info(s"$game, $from -> $to")
-      Ok()
+      val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
+      Persistent.game(gameId.toInt).map{game =>
+        game.move(user, from, to).fold(
+          (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove),
+          (updatedGame) => Ok(updatedGame)
+        )
+      }.getOrElse(Forbidden(reason = "Invalid gameId", body = gameId))
     }
   }
 

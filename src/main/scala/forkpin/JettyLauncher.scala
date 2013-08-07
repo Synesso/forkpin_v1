@@ -1,3 +1,5 @@
+package forkpin
+
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
 
