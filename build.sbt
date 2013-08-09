@@ -14,6 +14,8 @@ classpathTypes ~= (_ + "orbit")
 
 libraryDependencies ++= Seq(
   "com.typesafe.slick" % "slick_2.10" % "1.0.1",
+  // "org.scala-lang" % "scala-pickling_2.10" % "0.8.0-SNAPSHOT",
+  "com.novus" % "salat-core_2.10" % "1.9.2-SNAPSHOT",
   "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" % "scalatra_2.10" % "2.2.1",
   "org.scalatra" % "scalatra-scalate_2.10" % "2.2.1",
@@ -29,7 +31,8 @@ libraryDependencies ++= Seq(
   "com.google.api-client" % "google-api-client" % "1.14.1-beta",
   "com.google.apis" % "google-api-services-plus" % "v1-rev62-1.14.1-beta",
   "com.google.apis" % "google-api-services-oauth2" % "v1-rev33-1.14.1-beta",
-  "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta"
+  "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta",
+  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
 )
 
 resolvers ++= Seq(

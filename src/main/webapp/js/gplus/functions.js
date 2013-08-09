@@ -166,7 +166,7 @@ var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation)
     if (validMove) {
         $.ajax({
             type: 'POST',
-            url: window.location.origin + '/move?gameId=1&from=' + from + '&to=' + to,
+            url: window.location.origin + '/move?gameId=1&from=' + from.toUpperCase() + '&to=' + to.toUpperCase(),
             contentType: 'application/octet-stream; charset=utf-8',
             success: function(result) {
                 console.log('ok posting move', result);

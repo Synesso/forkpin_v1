@@ -13,24 +13,27 @@ object Persistent {
 
   val tables = Seq(Games, Users, Challenges)
 
+  case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
+  case class User(gPlusId: String, firstSeen: Timestamp)
+  case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
+
   object Users extends Table[User]("users") {
     def gPlusId = column[String]("gplus_id", O.PrimaryKey)
     def firstSeen = column[Timestamp]("first_login")
-    def lastSeen = column[Timestamp]("last_login")
-    def * = gPlusId ~ firstSeen ~ lastSeen <> (User, User.unapply _)
+    def * = gPlusId ~ firstSeen <> (User, User.unapply _)
   }
 
   object Games extends Table[GameRow]("games") {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def whiteId = column[String]("white_id")
     def blackId = column[String]("black_id")
-    def fen = column[String]("fen")
-    def * = id.? ~ whiteId ~ blackId ~ fen <> (GameRow, GameRow.unapply _)
+    def moves = column[String]("moves")
+    def * = id.? ~ whiteId ~ blackId ~ moves <> (GameRow, GameRow.unapply _)
     def white = foreignKey("white_fk", whiteId, Users)(_.gPlusId)
     def black = foreignKey("black_fk", blackId, Users)(_.gPlusId)
-    def forInsert = whiteId ~ blackId ~ fen <> (
+    def forInsert = whiteId ~ blackId ~ moves <> (
       {t => GameRow(None, t._1, t._2, t._3)},
-      {g: GameRow => Some((g.whiteId, g.blackId, g.fen))})
+      {g: GameRow => Some((g.whiteId, g.blackId, g.moves))})
   }
 
   object Challenges extends Table[Challenge]("challenges") {
@@ -50,7 +53,7 @@ object Persistent {
   val url = sys.env("DATABASE_JDBC_URL")
   val user = sys.env("DATABASE_USERNAME")
   val password = sys.env("DATABASE_USERPWD")
-  val database = Database.forURL(url, driver = driver, user = user, password = password)
+  val database: Database = Database.forURL(url, driver = driver, user = user, password = password)
 
   def create() = database withSession {
     if (sys.env.contains("DATABASE_FORCE_CREATE")) {
@@ -72,32 +75,30 @@ object Persistent {
     }
   }
 
-  def connectedUser(gPlusId: String) = database withSession {
-    logger.info(s"Registering $gPlusId")
+  def user(gPlusId: String) = database withSession {
     val userQuery = Query(Users).filter(_.gPlusId === gPlusId)
-    userQuery.firstOption.map{u =>
-      Users.filter(_.gPlusId === gPlusId).map(_.lastSeen).update(now)
-      u.copy(lastSeen = now)
-    }.getOrElse{
-      val u = User(gPlusId, now, now)
+    userQuery.firstOption.getOrElse{
+      val u = User(gPlusId, now)
       Users.insert(u)
       u
     }
   }
 
-  def createChallenge(user: User): Either[Challenge, GameRow] = database withSession {
+  def createChallenge(user: User): Either[Challenge, Game] = database withSession {
     logger.info(s"Received open challenge from forkpin.User(${user.gPlusId})")
     val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)
     challengeQuery.firstOption.map{c =>
       Query(Challenges).filter(_.id === c.id).delete
-      Right(Games.forInsert returning Games insert GameRow(None, user.gPlusId, c.challengerId)) // todo - randomise white/black
+      val gameRow = Games.forInsert returning Games insert GameRow(None, user.gPlusId, c.challengerId)
+      Right(Game.buildFrom(gameRow)) // todo - randomise white/black
     }.getOrElse{
       Left(Challenges.forInsert returning Challenges insert Challenge(None, user.gPlusId, None, now))
     }
   }
 
-  def game(id: Int): Option[GameRow] = database withSession {
-    Query(Games).filter(_.id === id).firstOption
+  def game(id: Int): Option[Game] = database withSession {
+    val gameRow = Query(Games).filter(_.id === id).firstOption
+    gameRow.map(Game.buildFrom)
   }
 
 

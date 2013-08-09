@@ -1,6 +1,5 @@
 package forkpin
 
-import _root_.gplus.{Token, GPlusOperations}
 import com.google.api.client.googleapis.auth.oauth2.{GoogleTokenResponse, GoogleCredential}
 import com.google.api.services.plus.Plus
 import java.math.BigInteger
@@ -10,6 +9,8 @@ import org.slf4j.LoggerFactory
 import scalate.ScalateSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
+import forkpin.Persistent.User
+import forkpin.gplus._
 
 class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport with GPlusOperations {
   protected implicit val jsonFormats: Formats = DefaultFormats
@@ -45,7 +46,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
               session.setAttribute("token", tokenResponse)
-              val user = Persistent.connectedUser(tokenInfo.getUserId)
+              val user = Persistent.user(tokenInfo.getUserId)
               session.setAttribute("user", user)
               Ok(reason = "Successfully connected user")
             }
@@ -80,7 +81,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
   get("/challenge") {
     authorisedJsonResponse {token =>
       val challengeOrGame = Persistent.createChallenge(user)
-      Ok(reason = s"Created $challengeOrGame", body = challengeOrGame)
+      Ok(reason = s"Created $challengeOrGame", body = challengeOrGame.fold(c => c, g => g.forClient))
     }
   }
 
@@ -88,9 +89,9 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     authorisedJsonResponse {token =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
-        game.move(user, from, to).fold(
+        game.move(from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove),
-          (updatedGame) => Ok(updatedGame)
+          (updatedGame) => Ok(updatedGame.forClient)
         )
       }.getOrElse(Forbidden(reason = "Invalid gameId", body = gameId))
     }

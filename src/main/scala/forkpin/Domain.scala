@@ -1,15 +1,8 @@
 package forkpin
 
-import java.sql.Timestamp
+import scala.Some
+import forkpin.Persistent.{GameRow, User, user}
 
-case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
-case class User(gPlusId: String, firstSeen: Timestamp, lastSeen: Timestamp)
-case class GameRow(id: Option[Int], whiteId: String, blackId: String, fen: String = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {
-  def move(user: User, from: String, to: String): Either[InvalidMove, GameRow] = {
-    // todo - validate move
-    Right(this)
-  }
-}
 
 object RankAndFile extends Enumeration {
   type RankAndFile = Value
@@ -30,7 +23,8 @@ case class Game(id: Int, white: User, black: User,
                 castling: Castling = Castling(),
                 enPassantTarget: Option[RankAndFile] = None,
                 halfMoveClock: Int = 0,
-                fullMove: Int = 1) {
+                fullMove: Int = 1,
+                moves: Vector[Move] = Vector.empty[Move]) {
 
   lazy val san = pieces.grouped(8).map{array =>
     val (row, nones) = array.foldLeft(("", 0)) {case ((str, noneCount), maybePiece) =>
@@ -50,6 +44,12 @@ case class Game(id: Int, white: User, black: User,
 
   lazy val fen = s"$san $activeColour ${castling.flag} $enPassantTargetFlag $halfMoveClock $fullMove"
 
+  lazy val pickledMoves = moves.map{m => m.from.toString + m.to.toString}.mkString
+
+  def move(from: String, to: String): Either[InvalidMove, Game] = move(Move(RankAndFile.withName(from), RankAndFile.withName(to)))
+  def move(move: Move): Either[InvalidMove, Game] = Right(this) // todo - apply the move - various rules to apply.
+
+  lazy val forClient: Map[String, String] = Map("id" -> id.toString, "white" -> white.gPlusId, "black" -> black.gPlusId, "fen" -> fen)
 }
 
 object Game {
@@ -67,10 +67,22 @@ object Game {
   ).foldLeft(Array.fill(64)(None: Option[Piece])){(arr, next) => 
     arr.updated(next._1.id, Some(next._2))
   }
+
+  def buildFrom(row: GameRow): Game = {
+    val startGame = Game(row.id.get, user(row.whiteId), user(row.blackId))
+    row.moves.grouped(4).map{str: String =>
+      val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
+      Move(rfs.head, rfs.tail.head)
+    }.foldRight(startGame){(move, game) =>
+      game.move(move).right.get
+    }
+  }
+
 }
 
+case class Move(from: RankAndFile, to: RankAndFile)
 
-case class InvalidMove(game: Game, user: User, from: RankAndFile, to: RankAndFile)
+case class InvalidMove(game: Game, user: User, move: Move)
 
 case class Castling(sides: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {
 

@@ -1,4 +1,4 @@
-package gplus
+package forkpin.gplus
 
 import java.io.IOException
 import com.google.api.client.auth.oauth2.TokenResponse
