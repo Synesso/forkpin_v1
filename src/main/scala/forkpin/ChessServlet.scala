@@ -90,7 +90,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
         game.move(user, from, to).fold(
-          (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove),
+          (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove.forClient),
           (updatedGame) => Ok(updatedGame.forClient)
         )
       }.getOrElse(Forbidden(reason = "Invalid gameId", body = gameId))

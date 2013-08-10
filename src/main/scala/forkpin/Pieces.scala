@@ -9,10 +9,22 @@ sealed trait San {
 trait Role extends San { // todo - check pandolfini for better name
   def validMoves(rf: RankAndFile, board: Board): Set[RankAndFile]
   val sanRole: Char
+  val forward: Side
+  val opposite: Colour
 }
 trait Pawn extends Role {
   val sanRole = 'p'
-  def validMoves(rf: RankAndFile, board: Board) = Set.empty[RankAndFile] // todo
+  def validMoves(rf: RankAndFile, board: Board) = {
+    val depth = (rf.id / 7, forward) match {
+      case (1, WhiteSide) => 2
+      case (7, BlackSide) => 2
+      case _ => 1
+    }
+    val captures: Set[RankAndFile] = Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
+      board.colourAt(pos) == Some(opposite)
+    }
+    rf.seek(board, depth, forward) ++ captures
+  }
 }
 trait Knight extends Role {
   val sanRole = 'n'
@@ -41,19 +53,21 @@ trait King extends Role {
   val sanRole = 'k'
   def validMoves(rf: RankAndFile, board: Board) = rf.seek(board, 1,
     KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
-    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
+    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide) // todo - add castling
 }
 
 sealed trait Colour extends San {
   val sanColour: Char
   val colour: Colour
   val opposite: Colour
+  val forward: Side
 }
 trait Black extends Colour {
   val sanColour = 'b'
   def sanModifier(c: Char): Char = c
   val colour = Black
   val opposite = White
+  val forward = WhiteSide
 }
 case object Black extends Black
 trait White extends Colour {
@@ -61,6 +75,7 @@ trait White extends Colour {
   def sanModifier(c: Char): Char = c.toUpper
   val colour = White
   val opposite = Black
+  val forward = BlackSide
 }
 case object White extends White
 
@@ -82,7 +97,7 @@ case object BlackKing extends Piece with Black with King
 trait Side {
   val offset: Int
   def +(side: Side) = new Object with Side {
-    val offset: Int = this.offset + side.offset
+    val offset: Int = Side.this.offset + side.offset
   }
 }
 case object QueenSide extends Side {

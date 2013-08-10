@@ -174,7 +174,7 @@ var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation)
             error: function(e) {
                 console.log('error posting move', e);
             }
-            // todo - post with data instead of query params?
+            // todo - post with data instead of query params? http://stackoverflow.com/questions/18161187/no-params-in-route-for-ajax-post
         });
         // todo - OK to return control so soon?
         return false;

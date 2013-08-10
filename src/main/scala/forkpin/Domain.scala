@@ -14,15 +14,17 @@ object RankAndFile extends Enumeration {
   val A3, B3, C3, D3, E3, F3, G3, H3 = Value
   val A2, B2, C2, D2, E2, F2, G2, H2 = Value
   val A1, B1, C1, D1, E1, F1, G1, H1 = Value
-  
+
+  object +: {
+    def unapply[T](s: Seq[T]) = s.headOption.map(head => (head, s.tail))
+  }
+
   implicit class RankAndFileWrapper(rf: RankAndFile) {
 
     def towards(direction: Side): Option[RankAndFile] = {
       val id = rf.id + direction.offset
       if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
     }
-
-    def findForPawn(board: Board) = Set.empty[RankAndFile] // todo
 
     def seek(board: Board, directions: Side*): Set[RankAndFile] = seekPositions(board, 8, directions)
 
@@ -33,7 +35,7 @@ object RankAndFile extends Enumeration {
 
       def seek(found: Set[RankAndFile], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[RankAndFile] = {
         remainingDirections match {
-          case (direction :: tail) => {
+          case direction +: tail => {
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
               board.colourAt(nextRf).map{colourHere =>
@@ -96,6 +98,9 @@ case class Game(id: Int, white: User, black: User,
     move(user, Move(RankAndFile.withName(from), RankAndFile.withName(to)))
 
   def move(user: User, move: Move): Either[InvalidMove, Game] = {
+    // todo - here I am, working out whether/how to calculate & return the side-effects of a move
+    // a type that is Either[InvalidMove, Move]
+    // if left then return, if right then apply to the game.
     val error = new MoveValidation(this, user, move).validationError
     error.map(msg => Left(InvalidMove(this, user, move, msg))).getOrElse(Right(this))
   }
@@ -131,9 +136,16 @@ object Game {
 
 }
 
-case class Move(from: RankAndFile, to: RankAndFile)
+case class Move(from: RankAndFile, to: RankAndFile,
+                capture: Option[RankAndFile] = None,
+                implication: Option[Move] = None,
+                promote: Option[Promotion] = None)
 
-case class InvalidMove(game: Game, user: User, move: Move, reason: String)
+case class Promotion(at: RankAndFile, to: Piece)
+
+case class InvalidMove(game: Game, user: User, move: Move, reason: String) {
+  lazy val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient)
+}
 
 case class Castling(roles: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {
 
