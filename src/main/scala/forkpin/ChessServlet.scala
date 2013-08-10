@@ -89,7 +89,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     authorisedJsonResponse {token =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
-        game.move(from, to).fold(
+        game.move(user, from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove),
           (updatedGame) => Ok(updatedGame.forClient)
         )

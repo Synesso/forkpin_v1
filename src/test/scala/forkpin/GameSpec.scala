@@ -27,7 +27,7 @@ class GameSpec extends FlatSpec with ShouldMatchers {
   }
 
   it should "still permit all kinds of castling" in {
-    aNewGame.castling.sides should (
+    aNewGame.castling.roles should (
       contain (BlackQueen: Piece) and
       contain (BlackKing: Piece) and
       contain (WhiteQueen: Piece) and

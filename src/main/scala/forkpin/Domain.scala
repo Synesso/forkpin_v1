@@ -14,22 +14,66 @@ object RankAndFile extends Enumeration {
   val A3, B3, C3, D3, E3, F3, G3, H3 = Value
   val A2, B2, C2, D2, E2, F2, G2, H2 = Value
   val A1, B1, C1, D1, E1, F1, G1, H1 = Value
+  
+  implicit class RankAndFileWrapper(rf: RankAndFile) {
+
+    def towards(direction: Side): Option[RankAndFile] = {
+      val id = rf.id + direction.offset
+      if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
+    }
+
+    def findForPawn(board: Board) = Set.empty[RankAndFile] // todo
+
+    def seek(board: Board, directions: Side*): Set[RankAndFile] = seekPositions(board, 8, directions)
+
+    def seek(board: Board, depth: Int, directions: Side*): Set[RankAndFile] = seekPositions(board, depth, directions)
+
+    private def seekPositions(board: Board, depth: Int, directions: Seq[Side]): Set[RankAndFile] = {
+      val enemy = board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
+
+      def seek(found: Set[RankAndFile], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[RankAndFile] = {
+        remainingDirections match {
+          case (direction :: tail) => {
+            if (remainingDepth == 0) seek(found, rf, depth, tail)
+            else last.towards(direction).map{nextRf =>
+              board.colourAt(nextRf).map{colourHere =>
+                if (colourHere.colour == enemy) {
+                  seek(found + nextRf, rf, depth, tail)
+                } else {
+                  seek(found, rf, depth, tail)
+                }
+              }.getOrElse(seek(found + nextRf, nextRf, remainingDepth - 1, remainingDirections))
+            }.getOrElse(seek(found, rf, depth, tail))
+          }
+          case Nil => found
+        }
+      }
+
+      seek(Set.empty[RankAndFile], rf, depth, directions)
+    }
+
+  }
 }
 import RankAndFile._
 
+case class Board(pieces: Array[Option[Piece]] = new Array(64)) {
+  def pieceAt(rf: RankAndFile) = pieces(rf.id)
+  def colourAt(rf: RankAndFile) = pieceAt(rf).map(_.colour)
+}
+
 case class Game(id: Int, white: User, black: User,
                 nextMove: User,
-                pieces: Array[Option[Piece]] = Game.openingPosition,
+                board: Board = Board(pieces = Game.openingPosition),
                 castling: Castling = Castling(),
                 enPassantTarget: Option[RankAndFile] = None,
                 halfMoveClock: Int = 0,
                 fullMove: Int = 1,
                 moves: Vector[Move] = Vector.empty[Move]) {
 
-  lazy val san = pieces.grouped(8).map{array =>
+  lazy val san = board.pieces.grouped(8).map{array =>
     val (row, nones) = array.foldLeft(("", 0)) {case ((str, noneCount), maybePiece) =>
       maybePiece.map{
-        piece => (s"$str${nonZero(noneCount)}${piece.san}", 0)
+        piece => (s"$str${nonZero(noneCount)}${piece.sanModifier(piece.sanRole)}", 0)
       }.getOrElse{
         (str, noneCount + 1)
       }
@@ -38,7 +82,9 @@ case class Game(id: Int, white: User, black: User,
   }.mkString("/")
   private def nonZero(i: Int) = if (i == 0) "" else i.toString
 
-  lazy val activeColour = if (nextMove equals white) 'w' else 'b'
+  lazy val nextColour = if (nextMove equals white) White else Black
+
+  lazy val activeColour = nextColour.sanColour
 
   lazy val enPassantTargetFlag = enPassantTarget.map(_.toString.toLowerCase).getOrElse("-")
 
@@ -46,8 +92,13 @@ case class Game(id: Int, white: User, black: User,
 
   lazy val pickledMoves = moves.map{m => m.from.toString + m.to.toString}.mkString
 
-  def move(from: String, to: String): Either[InvalidMove, Game] = move(Move(RankAndFile.withName(from), RankAndFile.withName(to)))
-  def move(move: Move): Either[InvalidMove, Game] = Right(this) // todo - apply the move - various rules to apply.
+  def move(user: User, from: String, to: String): Either[InvalidMove, Game] =
+    move(user, Move(RankAndFile.withName(from), RankAndFile.withName(to)))
+
+  def move(user: User, move: Move): Either[InvalidMove, Game] = {
+    val error = new MoveValidation(this, user, move).validationError
+    error.map(msg => Left(InvalidMove(this, user, move, msg))).getOrElse(Right(this))
+  }
 
   lazy val forClient: Map[String, String] = Map("id" -> id.toString, "white" -> white.gPlusId, "black" -> black.gPlusId, "fen" -> fen)
 }
@@ -58,13 +109,13 @@ object Game {
   val openingPosition = Vector[(RankAndFile, Piece)](
     A1 -> WhiteRook, B1 -> WhiteKnight, C1 -> WhiteBishop, D1 -> WhiteQueen,
     E1 -> WhiteKing, F1 -> WhiteBishop, G1 -> WhiteKnight, H1 -> WhiteRook,
-    A2 -> WhitePawn, B2 -> WhitePawn, C2 -> WhitePawn, D2 -> WhitePawn, 
-    E2 -> WhitePawn, F2 -> WhitePawn, G2 -> WhitePawn, H2 -> WhitePawn, 
-    A7 -> BlackPawn, B7 -> BlackPawn, C7 -> BlackPawn, D7 -> BlackPawn, 
-    E7 -> BlackPawn, F7 -> BlackPawn, G7 -> BlackPawn, H7 -> BlackPawn, 
+    A2 -> WhitePawn, B2 -> WhitePawn, C2 -> WhitePawn, D2 -> WhitePawn,
+    E2 -> WhitePawn, F2 -> WhitePawn, G2 -> WhitePawn, H2 -> WhitePawn,
+    A7 -> BlackPawn, B7 -> BlackPawn, C7 -> BlackPawn, D7 -> BlackPawn,
+    E7 -> BlackPawn, F7 -> BlackPawn, G7 -> BlackPawn, H7 -> BlackPawn,
     A8 -> BlackRook, B8 -> BlackKnight, C8 -> BlackBishop, D8 -> BlackQueen,
     E8 -> BlackKing, F8 -> BlackBishop, G8 -> BlackKnight, H8 -> BlackRook
-  ).foldLeft(Array.fill(64)(None: Option[Piece])){(arr, next) => 
+  ).foldLeft(Array.fill(64)(None: Option[Piece])){(arr, next) =>
     arr.updated(next._1.id, Some(next._2))
   }
 
@@ -74,7 +125,7 @@ object Game {
       val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
       Move(rfs.head, rfs.tail.head)
     }.foldRight(startGame){(move, game) =>
-      game.move(move).right.get
+      game.move(game.nextMove, move).right.get
     }
   }
 
@@ -82,26 +133,12 @@ object Game {
 
 case class Move(from: RankAndFile, to: RankAndFile)
 
-case class InvalidMove(game: Game, user: User, move: Move)
+case class InvalidMove(game: Game, user: User, move: Move, reason: String)
 
-case class Castling(sides: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {
+case class Castling(roles: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {
 
-  lazy val flag = sides match {
+  lazy val flag = roles match {
     case Nil => "-"
-    case _ => sides.map(_.san).mkString
+    case _ => roles.map(side => side.sanModifier(side.sanRole)).mkString
   }
 }
-
-class Piece(val san: Char)
-case object WhitePawn extends Piece('P')
-case object WhiteKnight extends Piece('N')
-case object WhiteBishop extends Piece('B')
-case object WhiteRook extends Piece('R')
-case object WhiteQueen extends Piece('Q')
-case object WhiteKing extends Piece('K')
-case object BlackPawn extends Piece('p')
-case object BlackKnight extends Piece('n')
-case object BlackBishop extends Piece('b')
-case object BlackRook extends Piece('r')
-case object BlackQueen extends Piece('q')
-case object BlackKing extends Piece('k')
