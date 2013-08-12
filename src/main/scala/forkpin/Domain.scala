@@ -26,39 +26,39 @@ object RankAndFile extends Enumeration {
       if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
     }
 
-    def seek(board: Board, directions: Side*): Set[RankAndFile] = seekPositions(board, 8, directions)
+    def seek(board: Board, directions: Side*): Set[Move] = seekPositions(board, 8, directions)
 
-    def seek(board: Board, depth: Int, directions: Side*): Set[RankAndFile] = seekPositions(board, depth, directions)
+    def seek(board: Board, depth: Int, directions: Side*): Set[Move] = seekPositions(board, depth, directions)
 
-    private def seekPositions(board: Board, depth: Int, directions: Seq[Side]): Set[RankAndFile] = {
+    private def seekPositions(board: Board, depth: Int, directions: Seq[Side]): Set[Move] = {
       val enemy = board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
 
-      def seek(found: Set[RankAndFile], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[RankAndFile] = {
+      def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[Move] = {
         remainingDirections match {
           case direction +: tail => {
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
               board.colourAt(nextRf).map{colourHere =>
                 if (colourHere.colour == enemy) {
-                  seek(found + nextRf, rf, depth, tail)
+                  seek(found + Move(rf, nextRf, Some(nextRf)), rf, depth, tail)
                 } else {
                   seek(found, rf, depth, tail)
                 }
-              }.getOrElse(seek(found + nextRf, nextRf, remainingDepth - 1, remainingDirections))
+              }.getOrElse(seek(found + Move(rf, nextRf), nextRf, remainingDepth - 1, remainingDirections))
             }.getOrElse(seek(found, rf, depth, tail))
           }
           case Nil => found
         }
       }
 
-      seek(Set.empty[RankAndFile], rf, depth, directions)
+      seek(Set.empty[Move], rf, depth, directions)
     }
 
   }
 }
 import RankAndFile._
 
-case class Board(pieces: Array[Option[Piece]] = new Array(64)) {
+case class Board(pieces: Vector[Option[Piece]] = Vector.fill(64)(None)) {
   def pieceAt(rf: RankAndFile) = pieces(rf.id)
   def colourAt(rf: RankAndFile) = pieceAt(rf).map(_.colour)
 }
@@ -69,7 +69,6 @@ case class Game(id: Int, white: User, black: User,
                 castling: Castling = Castling(),
                 enPassantTarget: Option[RankAndFile] = None,
                 halfMoveClock: Int = 0,
-                fullMove: Int = 1,
                 moves: Vector[Move] = Vector.empty[Move]) {
 
   lazy val san = board.pieces.grouped(8).map{array =>
@@ -86,26 +85,42 @@ case class Game(id: Int, white: User, black: User,
 
   lazy val nextColour = if (nextMove equals white) White else Black
 
+  lazy val enemy = if (nextMove equals white) black else white
+
   lazy val activeColour = nextColour.sanColour
 
   lazy val enPassantTargetFlag = enPassantTarget.map(_.toString.toLowerCase).getOrElse("-")
+
+  lazy val fullMove = (moves.length / 2) + 1
 
   lazy val fen = s"$san $activeColour ${castling.flag} $enPassantTargetFlag $halfMoveClock $fullMove"
 
   lazy val pickledMoves = moves.map{m => m.from.toString + m.to.toString}.mkString
 
   def move(user: User, from: String, to: String): Either[InvalidMove, Game] =
-    move(user, Move(RankAndFile.withName(from), RankAndFile.withName(to)))
+    move(user, RankAndFile.withName(from), RankAndFile.withName(to))
 
-  def move(user: User, move: Move): Either[InvalidMove, Game] = {
-    // todo - here I am, working out whether/how to calculate & return the side-effects of a move
-    // a type that is Either[InvalidMove, Move]
-    // if left then return, if right then apply to the game.
-    val error = new MoveValidation(this, user, move).validationError
-    error.map(msg => Left(InvalidMove(this, user, move, msg))).getOrElse(Right(this))
+  def move(user: User, from: RankAndFile, to: RankAndFile): Either[InvalidMove, Game] = {
+    new MoveEvaluator(this, user).evaluate(from, to).fold(
+      (invalidMove) => Left(invalidMove),
+      (move) => Right(applyMove(move))
+    )
   }
 
-  lazy val forClient: Map[String, String] = Map("id" -> id.toString, "white" -> white.gPlusId, "black" -> black.gPlusId, "fen" -> fen)
+  private def applyMove(move: Move): Game = {
+    val movingPiece = this.board.pieces(move.from.id)
+//    val capturedPiece = move.capture.flatMap(rf => this.board.pieces(rf.id)) // todo - handle en passant
+    val pieces = this.board.pieces.updated(move.from.id, None).updated(move.to.id, movingPiece)
+    val newMoves = move +: moves
+    this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves)
+  }
+
+  lazy val forClient: Map[String, Any] = Map(
+    "id" -> id.toString,
+    "white" -> white.gPlusId,
+    "black" -> black.gPlusId,
+    "fen" -> fen,
+    "moves" -> moves)
 }
 
 object Game {
@@ -120,7 +135,7 @@ object Game {
     E7 -> BlackPawn, F7 -> BlackPawn, G7 -> BlackPawn, H7 -> BlackPawn,
     A8 -> BlackRook, B8 -> BlackKnight, C8 -> BlackBishop, D8 -> BlackQueen,
     E8 -> BlackKing, F8 -> BlackBishop, G8 -> BlackKnight, H8 -> BlackRook
-  ).foldLeft(Array.fill(64)(None: Option[Piece])){(arr, next) =>
+  ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
     arr.updated(next._1.id, Some(next._2))
   }
 
@@ -128,9 +143,9 @@ object Game {
     val startGame = Game(row.id.get, user(row.whiteId), user(row.blackId))
     row.moves.grouped(4).map{str: String =>
       val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
-      Move(rfs.head, rfs.tail.head)
-    }.foldRight(startGame){(move, game) =>
-      game.move(game.nextMove, move).right.get
+      (rfs.head, rfs.tail.head)
+    }.foldRight(startGame){case ((from, to), game) =>
+      game.move(game.nextMove, from, to).right.get
     }
   }
 
@@ -143,8 +158,9 @@ case class Move(from: RankAndFile, to: RankAndFile,
 
 case class Promotion(at: RankAndFile, to: Piece)
 
-case class InvalidMove(game: Game, user: User, move: Move, reason: String) {
-  lazy val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient)
+case class InvalidMove(game: Game, user: User, from: RankAndFile, to: RankAndFile, reason: String) {
+  val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient,
+    "from" -> from, "to" -> to)
 }
 
 case class Castling(roles: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {

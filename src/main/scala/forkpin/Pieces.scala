@@ -7,7 +7,7 @@ sealed trait San {
 }
 
 trait Role extends San { // todo - check pandolfini for better name
-  def validMoves(rf: RankAndFile, board: Board): Set[RankAndFile]
+  def validMoves(rf: RankAndFile, board: Board): Set[Move]
   val sanRole: Char
   val forward: Side
   val opposite: Colour
@@ -16,13 +16,14 @@ trait Pawn extends Role {
   val sanRole = 'p'
   def validMoves(rf: RankAndFile, board: Board) = {
     val depth = (rf.id / 7, forward) match {
+      // todo - if depth 2, then set the en passant target
       case (1, WhiteSide) => 2
       case (7, BlackSide) => 2
       case _ => 1
     }
-    val captures: Set[RankAndFile] = Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
+    val captures: Set[Move] = Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
       board.colourAt(pos) == Some(opposite)
-    }
+    }.map(to => Move(rf, to, Some(to)))
     rf.seek(board, depth, forward) ++ captures
   }
 }

@@ -1203,7 +1203,7 @@ var updateDraggedPiece = function(x, y) {
       .removeClass(CSS.highlight2);
   }
 
-  if (cfg.movingPiece.validDestinations.indexOf(location) >= 0) {
+  if (cfg.focus.validDestinations.indexOf(location) >= 0) {
     // add highlight to new square
     if (validSquare(location) === true) {
       $('#' + SQUARE_ELS_IDS[location]).addClass(CSS.highlight2);

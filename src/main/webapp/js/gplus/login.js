@@ -1,7 +1,12 @@
-// todo - this is in the wrong folder
-var helper = (function() {
+var loginMod = (function() {
+
     var authResult = undefined;
-    var divs = {'userName': $('#userName'), 'selfPanel': $('#selfPanel'), 'opponentPanel': $('#opponentPanel')};
+
+    var divs = {
+        'userName': $('#userName'),
+        'selfPanel': $('#selfPanel'),
+        'opponentPanel': $('#opponentPanel')
+    };
 
     return {
         /**
@@ -26,6 +31,7 @@ var helper = (function() {
             }
             console.log('authResult', authResult);
         },
+
         /**
          * Retrieves and renders the authenticated user's Google+ profile.
          */
@@ -38,13 +44,14 @@ var helper = (function() {
                     divs.selfPanel.append(profile.error);
                     return;
                 }
-                helper.connectServer(profile.id);
+                loginMod.connectServer(profile.id);
                 divs.userName.append(profile.displayName);
                 divs.selfPanel.append('<img src="' + profile.image.url + '" class="img-circle"/>');
                 $('#gConnect').hide();
                 $('#userMenu').show();
             });
         },
+
         /**
          * Calls the server endpoint to disconnect the app for the user.
          */
@@ -65,13 +72,7 @@ var helper = (function() {
                 }
             });
         },
-        /**
-         * Calls the server endpoint to connect the app for the user. The client
-         * sends the one-time authorization code to the server and the server
-         * exchanges the code for its own tokens to use for offline API access.
-         * For more information, see:
-         *   https://developers.google.com/+/web/signin/server-side-flow
-         */
+
         connectServer: function(gplusId) {
             url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId;
             console.log('connectServer -> ', url);
@@ -88,28 +89,34 @@ var helper = (function() {
                 processData: false,
                 data: this.authResult.code
             });
-        },
+        }
+
         /**
          * Calls the server endpoint to get the list of people visible to this app.
+         * todo - this is not used but could be for the challenge-friend functionality
          */
+/*
         people: function() {
             $.ajax({
                 type: 'GET',
                 url: window.location.origin + '/people',
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(result) {
-                    helper.appendCircled(result);
+                    loginMod.appendCircled(result);
                 },
                 error: function(e) {
                     console.log('error getting people list', e);
                 }
             });
         },
+*/
         /**
          * Displays visible People retrieved from server.
          *
          * @param {Object} people A list of Google+ Person resources.
+         * todo - just an example of how to get people's details
          */
+/*
         appendCircled: function(people) {
             $('#visiblePeople').empty().append('Number of people visible to this app: ' + people.totalItems + '<br/>');
             for (var personIndex in people.items) {
@@ -117,100 +124,10 @@ var helper = (function() {
                 $('#visiblePeople').append('<img src="' + person.image.url + '" title="' + person.displayName + '">');
             }
         },
+*/
 
-        issueChallenge: function() {
-            $.ajax({
-                type: 'GET',
-                url: window.location.origin + '/challenge',
-                contentType: 'application/octet-stream; charset=utf-8',
-                success: function(result) {
-                    if (result.hasOwnProperty('fen')) {
-                        helper.loadGame(result);
-                    } else {
-                        helper.challengeCreated(result);
-                    }
-                },
-                error: function(e) {
-                    console.log('error issuing challenge', e);
-                }
-            })
-        },
-
-        loadGame: function(game) {
-            console.log('loading game', game);
-            $('#chessboard').fadeTo('slow', 1.0);
-            board.position(game.fen);
-        },
-
-        challengeCreated: function(challenge) {
-            console.log('challenge created', challenge);
-        }
     };
 })();
-
-var board;
-var game;
-
-var movingPiece = {
-    validDestinations: []
-};
-
-var dragStartEvent = function(source, piece, position, orientation) {
-    movingPiece.validDestinations = $.map(game.moves({square: source}), function(s) { return s.substring(s.length -2); });
-    return movingPiece.validDestinations.length > 0;
-};
-
-var dropEvent = function(from, to, piece, newPosition, oldPosition, orientation) {
-    var result = game.move({from: from, to: to});
-    var validMove = result != null;
-    if (validMove) {
-        $.ajax({
-            type: 'POST',
-            url: window.location.origin + '/move?gameId=1&from=' + from.toUpperCase() + '&to=' + to.toUpperCase(),
-            contentType: 'application/octet-stream; charset=utf-8',
-            success: function(result) {
-                console.log('ok posting move', result);
-            },
-            error: function(e) {
-                console.log('error posting move', e);
-            }
-            // todo - post with data instead of query params? http://stackoverflow.com/questions/18161187/no-params-in-route-for-ajax-post
-        });
-        // todo - OK to return control so soon?
-        return false;
-    }
-    return 'snapback';
-};
-
-var snapEndEvent = function() {
-    console.log(board.fen());
-    console.log(game.san());
-    if (board.fen() !== game.san()) {
-        board.position(game.san());
-    }
-};
-
-$(document).ready(function() {
-    $('#gDisconnect').click(helper.disconnectServer);
-    $('#playButton').click(helper.issueChallenge);
-    game = new Chess();
-    game.san = function() {
-        var fen = this.fen();
-        return fen.substring(0, fen.indexOf(' '));
-    };
-
-    board = new ChessBoard('chessboard', {
-        draggable: true,
-        snapbackSpeed: 'fast',
-        onDragStart: dragStartEvent,
-        onDrop: dropEvent,
-        onSnapEnd: snapEndEvent,
-        movingPiece: movingPiece,
-        showErrors: 'true'
-    });
-
-    $('#chessboard').fadeTo('slow', 0.25);
-});
 
 /**
  * Calls the helper method that handles the authentication flow.
@@ -219,5 +136,9 @@ $(document).ready(function() {
  *   other authentication information.
  */
 function onSignInCallback(authResult) {
-    helper.onSignInCallback(authResult);
+    loginMod.onSignInCallback(authResult);
 }
+
+$(document).ready(function() {
+    $('#gDisconnect').click(loginMod.disconnectServer);
+});
