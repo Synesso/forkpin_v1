@@ -6,7 +6,7 @@ sealed trait San {
   def sanModifier(c: Char): Char
 }
 
-trait Role extends San { // todo - check pandolfini for better name
+trait Role extends San {
   def validMoves(rf: RankAndFile, board: Board): Set[Move]
   val sanRole: Char
   val forward: Side
@@ -16,7 +16,6 @@ trait Pawn extends Role {
   val sanRole = 'p'
   def validMoves(rf: RankAndFile, board: Board) = {
     val depth = (rf.id / 7, forward) match {
-      // todo - if depth 2, then set the en passant target
       case (1, WhiteSide) => 2
       case (7, BlackSide) => 2
       case _ => 1
@@ -54,7 +53,7 @@ trait King extends Role {
   val sanRole = 'k'
   def validMoves(rf: RankAndFile, board: Board) = rf.seek(board, 1,
     KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
-    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide) // todo - add castling
+    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
 }
 
 sealed trait Colour extends San {
@@ -80,7 +79,7 @@ trait White extends Colour {
 }
 case object White extends White
 
-trait Piece extends Role with Colour // todo - check pandolfini for better name
+trait Piece extends Role with Colour
 
 case object WhitePawn extends Piece with White with Pawn
 case object WhiteKnight extends Piece with White with Knight

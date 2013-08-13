@@ -78,7 +78,7 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
     }
   }
 
-  get("/challenge") {
+  post("/challenge") {
     authorisedJsonResponse {token =>
       val challengeOrGame = Persistent.createChallenge(user)
       Ok(reason = s"Created $challengeOrGame", body = challengeOrGame.fold(c => c, g => g.forClient))

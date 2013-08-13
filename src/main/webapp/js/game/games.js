@@ -13,9 +13,9 @@ var gameControls = (function () {
 
         issueChallenge: function () {
             $.ajax({
-                type: 'GET', // todo - should be a POST
+                type: 'POST',
                 url: window.location.origin + '/challenge',
-                contentType: 'application/octet-stream; charset=utf-8',
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
                 success: function (result) {
                     if (result.hasOwnProperty('fen')) {
                         gameControls.loadGame(result);

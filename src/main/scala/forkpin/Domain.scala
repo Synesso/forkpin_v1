@@ -109,7 +109,6 @@ case class Game(id: Int, white: User, black: User,
 
   private def applyMove(move: Move): Game = {
     val movingPiece = this.board.pieces(move.from.id)
-//    val capturedPiece = move.capture.flatMap(rf => this.board.pieces(rf.id)) // todo - handle en passant
     val pieces = this.board.pieces.updated(move.from.id, None).updated(move.to.id, movingPiece)
     val newMoves = move +: moves
     this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves)

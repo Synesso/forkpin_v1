@@ -18,9 +18,6 @@ class MoveEvaluator(game: Game, user: User) {
 
     lazy val canMoveToTarget = validMoves.contains(to)
 
-//    lazy val isInCheckAfterMove = ??? // todo
-
-
 
     def invalid(reason: String): Either[InvalidMove, Move] = Left(InvalidMove(game, user, from, to, reason))
 

@@ -14,7 +14,6 @@ classpathTypes ~= (_ + "orbit")
 
 libraryDependencies ++= Seq(
   "com.typesafe.slick" % "slick_2.10" % "1.0.1",
-  // "org.scala-lang" % "scala-pickling_2.10" % "0.8.0-SNAPSHOT",
   "com.novus" % "salat-core_2.10" % "1.9.2-SNAPSHOT",
   "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" % "scalatra_2.10" % "2.2.1",
