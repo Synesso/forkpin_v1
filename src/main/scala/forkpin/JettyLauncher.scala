@@ -2,17 +2,12 @@ package forkpin
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
-import scala.sys.SystemProperties
 
-object JettyLauncher {
+object JettyLauncher extends Config {
 
   def main(args: Array[String]) {
 
-    if (executingDirectly) {
-      loadEnv()
-    }
-
-    val port = systemProperties.get("PORT").map(_.toInt).getOrElse(5000)
+    val port = properties.get("PORT").map(_.toInt).getOrElse(5000)
     val server = new Server(port)
     val context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS)
 
@@ -26,12 +21,4 @@ object JettyLauncher {
     server.join()
   }
 
-  private val systemProperties = new SystemProperties
-  private val executingDirectly = !sys.env.contains("APPLICATION_NAME")
-
-  def loadEnv() = {
-    io.Source.fromFile(".env").getLines().map(_.split("=")).foreach{line =>
-      systemProperties.update(line(0), line.tail.mkString("="))
-    }
-  }
 }

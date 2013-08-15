@@ -11,16 +11,14 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.json._
 import forkpin.Persistent.User
 import forkpin.gplus._
-import scala.sys.SystemProperties
 
-class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport with GPlusOperations {
+class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport with GPlusOperations with Config {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   val logger =  LoggerFactory.getLogger(getClass)
-  val systemProperties = new SystemProperties
-  val appName = systemProperties("APPLICATION_NAME")
-  val clientId = systemProperties("CLIENT_ID")
-  val clientSecret = systemProperties("CLIENT_SECRET")
+  val appName = properties("APPLICATION_NAME")
+  val clientId = properties("CLIENT_ID")
+  val clientSecret = properties("CLIENT_SECRET")
 
   Persistent.create()
 
