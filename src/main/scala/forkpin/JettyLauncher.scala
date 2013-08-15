@@ -27,7 +27,7 @@ object JettyLauncher {
   }
 
   private val systemProperties = new SystemProperties
-  private val executingDirectly = !systemProperties.contains("APPLICATION_NAME")
+  private val executingDirectly = !sys.env.contains("APPLICATION_NAME")
 
   def loadEnv() = {
     io.Source.fromFile(".env").getLines().map(_.split("=")).foreach{line =>
