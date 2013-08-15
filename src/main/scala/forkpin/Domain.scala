@@ -119,7 +119,7 @@ case class Game(id: Int, white: User, black: User,
     "white" -> white.gPlusId,
     "black" -> black.gPlusId,
     "fen" -> fen,
-    "moves" -> moves)
+    "moves" -> moves.map(_.forClient).toList)
 }
 
 object Game {
@@ -153,12 +153,14 @@ object Game {
 case class Move(from: RankAndFile, to: RankAndFile,
                 capture: Option[RankAndFile] = None,
                 implication: Option[Move] = None,
-                promote: Option[Promotion] = None)
+                promote: Option[Promotion] = None) {
+  lazy val forClient: Map[String, Any] = Map("from" -> from.toString, "to" -> to.toString)
+}
 
 case class Promotion(at: RankAndFile, to: Piece)
 
 case class InvalidMove(game: Game, user: User, from: RankAndFile, to: RankAndFile, reason: String) {
-  val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient,
+  lazy val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient,
     "from" -> from, "to" -> to)
 }
 

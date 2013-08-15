@@ -6,10 +6,12 @@ import scala.slick.driver.PostgresDriver.simple._
 import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
+import scala.sys.SystemProperties
 
 object Persistent {
 
   val logger =  LoggerFactory.getLogger(getClass)
+  val systemProperties = new SystemProperties
 
   val tables = Seq(Games, Users, Challenges)
 
@@ -49,14 +51,16 @@ object Persistent {
       {c: Challenge => Some((c.challengerId, c.challengedId, now))})
   }
 
-  val driver = sys.env("DATABASE_DRIVER")
-  val url = sys.env("DATABASE_JDBC_URL")
-  val user = sys.env("DATABASE_USERNAME")
-  val password = sys.env("DATABASE_USERPWD")
-  val database: Database = Database.forURL(url, driver = driver, user = user, password = password)
+  val database: Database = {
+    val driver = systemProperties("DATABASE_DRIVER")
+    val url = systemProperties("DATABASE_JDBC_URL")
+    val user = systemProperties("DATABASE_USERNAME")
+    val password = systemProperties("DATABASE_USERPWD")
+    Database.forURL(url, driver = driver, user = user, password = password)
+  }
 
   def create() = database withSession {
-    if (sys.env.contains("DATABASE_FORCE_CREATE")) {
+    if (systemProperties.contains("DATABASE_FORCE_CREATE")) {
       import scala.slick.jdbc.{StaticQuery => Q}
       def existingTables = MTable.getTables.list().map(_.name.name)
       tables.filter(t => existingTables.contains(t.tableName)).foreach{t =>
