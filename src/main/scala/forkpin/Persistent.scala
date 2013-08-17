@@ -1,15 +1,12 @@
 package forkpin
 
 import java.sql.Timestamp
-import org.slf4j.LoggerFactory
 import scala.slick.driver.PostgresDriver.simple._
 import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
 
 object Persistent extends Config {
-
-  val logger =  LoggerFactory.getLogger(getClass)
 
   val tables = Seq(Games, Users, Challenges)
 

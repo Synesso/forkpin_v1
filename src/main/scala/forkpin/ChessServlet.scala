@@ -5,17 +5,10 @@ import com.google.api.services.plus.Plus
 import java.math.BigInteger
 import java.security.SecureRandom
 import org.scalatra._
-import org.slf4j.LoggerFactory
-import scalate.ScalateSupport
-import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.json._
-import forkpin.Persistent.User
 import forkpin.gplus._
 
-class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport with GPlusOperations with Config {
-  protected implicit val jsonFormats: Formats = DefaultFormats
+class ChessServlet extends ForkpinServlet with GPlusOperations {
 
-  val logger =  LoggerFactory.getLogger(getClass)
   val appName = properties("APPLICATION_NAME")
   val clientId = properties("CLIENT_ID")
   val clientSecret = properties("CLIENT_SECRET")
@@ -95,35 +88,6 @@ class ChessServlet extends ScalatraServlet with ScalateSupport with JacksonJsonS
         )
       }.getOrElse(Forbidden(reason = "Invalid gameId", body = gameId))
     }
-  }
-
-  notFound {
-    findTemplate(requestPath) map { path =>
-      contentType = "text/html"
-      layoutTemplate(path)
-    } orElse serveStaticResource() getOrElse resourceNotFound()
-  }
-
-  error { case e =>
-    logger.error("Gone south: ", e)
-    status_=(500)
-    <span>{e.getMessage}</span>
-  }
-
-  private def token = session.get("token")
-  private def user = session("user").asInstanceOf[User]
-
-  private def authorisedJsonResponse(result: (Token) => ActionResult): ActionResult = {
-    authorisedJsonResponse(result, Unauthorized("Current user is not connected."))
-  }
-
-  private def authorisedJsonResponse(result: (Token) => ActionResult, orElse: => ActionResult): ActionResult = {
-    jsonResponse(token.map{t => result(Token(s"$t"))}.getOrElse(orElse))
-  }
-
-  private def jsonResponse(result: => ActionResult) = {
-    contentType = formats("json")
-    result
   }
 
 }

@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container,compile" artifacts Artifact("javax.servlet", "jar", "jar"),
   "org.json4s" % "json4s-jackson_2.10" % "3.2.5",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
+  "net.databinder.dispatch" % "dispatch-core_2.10" % "0.11.0",
   "com.google.api-client" % "google-api-client" % "1.14.1-beta",
   "com.google.apis" % "google-api-services-plus" % "v1-rev62-1.14.1-beta",
   "com.google.apis" % "google-api-services-oauth2" % "v1-rev33-1.14.1-beta",

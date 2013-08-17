@@ -2,6 +2,7 @@ package forkpin
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
+import forkpin.eshq.EventSourceServlet
 
 object JettyLauncher extends Config {
 
@@ -11,6 +12,7 @@ object JettyLauncher extends Config {
     val server = new Server(port)
     val context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS)
 
+    context.addServlet(classOf[EventSourceServlet], "/eshq/*")
     context.addServlet(classOf[ChessServlet], "/*")
     val defaultServlet = new ServletHolder(classOf[DefaultServlet])
     defaultServlet.setName("default")
