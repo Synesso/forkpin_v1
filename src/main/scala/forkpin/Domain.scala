@@ -197,9 +197,9 @@ case object BlackQueenSide extends CastlingAvailability {
 case class Castling(permitted: Map[Colour, Seq[CastlingAvailability]] = Map(
     White -> Seq(WhiteKingSide, WhiteQueenSide), Black -> Seq(BlackKingSide, BlackQueenSide))) {
 
-  lazy val flag: String = (permitted(White) ++: permitted(Black)).map(_.fen.toString)
+  lazy val flag: String = Seq(White, Black).flatMap(permitted.get).flatten.map(_.fen.toString)
     .reduceLeftOption{(next, acc) => next + acc
   }.getOrElse("-")
 
-  def availabilityFor(colour: Colour) = permitted(colour)
+  def availabilityFor(colour: Colour) = permitted.getOrElse(colour, Nil)
 }
