@@ -7,28 +7,29 @@ sealed trait San {
 }
 
 trait Role extends San {
-  def validMoves(rf: RankAndFile, board: Board): Set[Move]
+  def validMoves(rf: RankAndFile, game: Game): Set[Move]
   val sanRole: Char
   val forward: Side
+  val colour: Colour
   val opposite: Colour
 }
 trait Pawn extends Role {
   val sanRole = 'p'
-  def validMoves(rf: RankAndFile, board: Board) = {
+  def validMoves(rf: RankAndFile, game: Game) = {
     val depth = (rf.id / 7, forward) match {
       case (1, WhiteSide) => 2
       case (7, BlackSide) => 2
       case _ => 1
     }
     val captures: Set[Move] = Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
-      board.colourAt(pos) == Some(opposite)
+      game.board.colourAt(pos) == Some(opposite)
     }.map(to => Move(rf, to, Some(to)))
-    rf.seek(board, depth, forward) ++ captures
+    rf.seek(game, depth, forward) ++ captures
   }
 }
 trait Knight extends Role {
   val sanRole = 'n'
-  def validMoves(rf: RankAndFile, board: Board) = rf.seek(board, 1,
+  def validMoves(rf: RankAndFile, game: Game) = rf.seek(game, 1,
     KingSide + BlackSide + BlackSide, KingSide + KingSide + BlackSide,
     KingSide + WhiteSide + WhiteSide, KingSide + KingSide + WhiteSide,
     QueenSide + BlackSide + BlackSide, QueenSide + QueenSide + BlackSide,
@@ -36,24 +37,40 @@ trait Knight extends Role {
 }
 trait Bishop extends Role {
   val sanRole = 'b'
-  def validMoves(rf: RankAndFile, board: Board) = rf.seek(board,
+  def validMoves(rf: RankAndFile, game: Game) = rf.seek(game,
     KingSide + BlackSide, KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
 }
 trait Rook extends Role {
   val sanRole = 'r'
-  def validMoves(rf: RankAndFile, board: Board) = rf.seek(board, KingSide, QueenSide, BlackSide, WhiteSide)
+  def validMoves(rf: RankAndFile, game: Game) = rf.seek(game, KingSide, QueenSide, BlackSide, WhiteSide)
+}
+object Rook {
+  def of(colour: Colour) = colour match { // todo - not exhaustive
+    case White => WhiteRook
+    case Black => BlackRook
+  }
 }
 trait Queen extends Role {
   val sanRole = 'q'
-  def validMoves(rf: RankAndFile, board: Board) = rf.seek(board,
+  def validMoves(rf: RankAndFile, game: Game) = rf.seek(game,
     KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
     KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
 }
 trait King extends Role {
   val sanRole = 'k'
-  def validMoves(rf: RankAndFile, board: Board) = rf.seek(board, 1,
-    KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
-    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
+  def validMoves(rf: RankAndFile, game: Game) = {
+    val castlingMoves = {
+      game.castling.availabilityFor(colour).filter{ca =>
+        game.board.pieceAt(ca.rookStarts).exists(_ == Rook.of(colour)) &&
+        ca.betweenRookAndKing.forall(rf => !game.isOccupiedAt(rf)) &&
+        ca.kingMoves.forall{rf => !game.isThreatenedAt(rf)}
+      }.map{ca => Move(rf, ca.kingMoves.last, implication = Some(Move(ca.rookStarts, ca.kingMoves(1))))}
+    }.toSet
+
+    castlingMoves ++ rf.seek(game, 1,
+      KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
+      KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
+  }
 }
 
 sealed trait Colour extends San {
@@ -80,7 +97,6 @@ trait White extends Colour {
 case object White extends White
 
 trait Piece extends Role with Colour
-
 case object WhitePawn extends Piece with White with Pawn
 case object WhiteKnight extends Piece with White with Knight
 case object WhiteBishop extends Piece with White with Bishop

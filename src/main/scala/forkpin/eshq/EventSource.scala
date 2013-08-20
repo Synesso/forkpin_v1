@@ -7,6 +7,7 @@ import ExecutionContext.Implicits.global
 import org.scalatra.{Ok, InternalServerError, ActionResult}
 import scala.concurrent.duration._
 
+// todo - uncouple from scalatra and publish.
 object EventSource extends Config {
 
   val (key, secret, serviceURL) = (properties("ESHQ_KEY"), properties("ESHQ_SECRET"), properties("ESHQ_URL"))
@@ -18,14 +19,8 @@ object EventSource extends Config {
   private def post(path: String, params: Map[String, String]): ActionResult = {
     val request = url(s"$serviceURL$path") << params << credentials
     Await.result(Http(request).either, 5.seconds).fold(
-      {t => {
-        t.printStackTrace()
-        InternalServerError(s"Failed to post $request: ${t.getMessage}")
-      }},
-      {r =>
-        logger.info(r.getResponseBody)
-        Ok(r.getResponseBody)
-      }
+      {t => InternalServerError(s"Failed to post $request: ${t.getMessage}")},
+      {r =>Ok(r.getResponseBody)}
     )
   }
 

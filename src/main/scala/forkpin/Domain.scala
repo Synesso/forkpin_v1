@@ -26,19 +26,19 @@ object RankAndFile extends Enumeration {
       if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
     }
 
-    def seek(board: Board, directions: Side*): Set[Move] = seekPositions(board, 8, directions)
+    def seek(game: Game, directions: Side*): Set[Move] = seekPositions(game, 8, directions)
 
-    def seek(board: Board, depth: Int, directions: Side*): Set[Move] = seekPositions(board, depth, directions)
+    def seek(game: Game, depth: Int, directions: Side*): Set[Move] = seekPositions(game, depth, directions)
 
-    private def seekPositions(board: Board, depth: Int, directions: Seq[Side]): Set[Move] = {
-      val enemy = board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
+    private def seekPositions(game: Game, depth: Int, directions: Seq[Side]): Set[Move] = {
+      val enemy = game.board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
 
       def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[Move] = {
         remainingDirections match {
           case direction +: tail => {
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
-              board.colourAt(nextRf).map{colourHere =>
+              game.board.colourAt(nextRf).map{colourHere =>
                 if (colourHere.colour == enemy) {
                   seek(found + Move(rf, nextRf, Some(nextRf)), rf, depth, tail)
                 } else {
@@ -107,6 +107,10 @@ case class Game(id: Int, white: User, black: User,
     )
   }
 
+  def isOccupiedAt(rf: RankAndFile) = board.pieceAt(rf).isDefined
+
+  def isThreatenedAt(rf: RankAndFile) = false // todo !!
+
   private def applyMove(move: Move): Game = {
     val movingPiece = this.board.pieces(move.from.id)
     val pieces = this.board.pieces.updated(move.from.id, None).updated(move.to.id, movingPiece)
@@ -147,7 +151,6 @@ object Game {
       game.move(game.nextMove, from, to).right.get
     }
   }
-
 }
 
 case class Move(from: RankAndFile, to: RankAndFile,
@@ -164,10 +167,39 @@ case class InvalidMove(game: Game, user: User, from: RankAndFile, to: RankAndFil
     "from" -> from, "to" -> to)
 }
 
-case class Castling(roles: Seq[Piece] = Seq(WhiteKing, WhiteQueen, BlackKing, BlackQueen)) {
-
-  lazy val flag = roles match {
-    case Nil => "-"
-    case _ => roles.map(side => side.sanModifier(side.sanRole)).mkString
+sealed trait CastlingAvailability {
+  lazy val betweenRookAndKing = {
+    def collect(next: Option[RankAndFile], found: Seq[RankAndFile]): Seq[RankAndFile] = next match {
+      case Some(rf) if rf != rookStarts => collect(rf.towards(side), rf +: found)
+      case _ => found
+    }
+    collect(kingMoves.head.towards(side), Seq.empty)
   }
+
+  val fen: Char
+  val kingMoves: Seq[RankAndFile]
+  val rookStarts: RankAndFile
+  val side: Side
+}
+case object WhiteKingSide extends CastlingAvailability {
+  val (fen, kingMoves, rookStarts, side) = ('K', Seq(E1, F1, G1), H1, KingSide)
+}
+case object WhiteQueenSide extends CastlingAvailability {
+  val (fen, kingMoves, rookStarts, side) = ('Q', Seq(E1, D1, C1), A1, QueenSide)
+}
+case object BlackKingSide extends CastlingAvailability {
+  val (fen, kingMoves, rookStarts, side) = ('k', Seq(E8, F8, G8), H8, KingSide)
+}
+case object BlackQueenSide extends CastlingAvailability {
+  val (fen, kingMoves, rookStarts, side) = ('q', Seq(E8, D8, C8), A8, QueenSide)
+}
+
+case class Castling(permitted: Map[Colour, Seq[CastlingAvailability]] = Map(
+    White -> Seq(WhiteKingSide, WhiteQueenSide), Black -> Seq(BlackKingSide, BlackQueenSide))) {
+
+  lazy val flag: String = (permitted(White) ++: permitted(Black)).map(_.fen.toString)
+    .reduceLeftOption{(next, acc) => next + acc
+  }.getOrElse("-")
+
+  def availabilityFor(colour: Colour) = permitted(colour)
 }

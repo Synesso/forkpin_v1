@@ -26,13 +26,17 @@ class GameSpec extends FlatSpec with ShouldMatchers {
     aNewGame.enPassantTarget should be (None)
   }
 
+  // todo - scalatest matchers are ... Move back to specs2
   it should "still permit all kinds of castling" in {
-    aNewGame.castling.roles should (
-      contain (BlackQueen: Piece) and
-      contain (BlackKing: Piece) and
-      contain (WhiteQueen: Piece) and
-      contain (WhiteKing: Piece) and
-      have size 4
+    aNewGame.castling.availabilityFor(White) should (
+      contain (WhiteKingSide: CastlingAvailability) and
+      contain (WhiteQueenSide: CastlingAvailability) and
+      have size 2
+    )
+    aNewGame.castling.availabilityFor(Black) should (
+      contain (BlackKingSide: CastlingAvailability) and
+      contain (BlackQueenSide: CastlingAvailability) and
+      have size 2
     )
   }
 

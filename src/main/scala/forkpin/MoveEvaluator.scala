@@ -11,7 +11,7 @@ class MoveEvaluator(game: Game, user: User) {
 
     lazy val piece: Option[Piece] = game.board.pieceAt(from)
 
-    lazy val validMoves: Map[RankAndFile, Move] = piece.map(_.validMoves(from, game.board)).getOrElse(Set.empty)
+    lazy val validMoves: Map[RankAndFile, Move] = piece.map(_.validMoves(from, game)).getOrElse(Set.empty)
       .map{m => (m.to, m)}.toMap
 
     lazy val isOwnedPiece = piece.exists(_.colour == game.nextColour)
