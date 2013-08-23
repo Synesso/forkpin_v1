@@ -1,4 +1,4 @@
-import com.typesafe.startscript.StartScriptPlugin
+import com.typesafe.sbt.SbtStartScript
 
 organization := "com.github.synesso"
 
@@ -32,7 +32,9 @@ libraryDependencies ++= Seq(
   "com.google.apis" % "google-api-services-plus" % "v1-rev62-1.14.1-beta",
   "com.google.apis" % "google-api-services-oauth2" % "v1-rev33-1.14.1-beta",
   "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta",
-  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test"
+  "org.scalatest" % "scalatest_2.10" % "1.9.1" % "test",
+  "org.specs2" %% "specs2" % "2.1.1" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test"
 )
 
 resolvers ++= Seq(
@@ -40,9 +42,16 @@ resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 )
 
-seq(StartScriptPlugin.startScriptForClassesSettings: _*)
+seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 ivyScala ~= { (is: Option[IvyScala]) =>
   for(i <- is) yield
     i.copy(checkExplicit = false)
 }
+
+ivyXML :=
+  <dependency org="org.eclipse.jetty.orbit" name="javax.servlet" rev="3.0.0.v201112011016">
+    <artifact name="javax.servlet" type="orbit" ext="jar"/>
+  </dependency>
+
+scalacOptions in Test ++= Seq("-Yrangepos")

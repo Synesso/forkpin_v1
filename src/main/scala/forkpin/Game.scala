@@ -51,12 +51,11 @@ case class Game(id: Int, white: User, black: User,
   def isOccupiedAt(rf: RankAndFile) = board.pieceAt(rf).isDefined
 
   def isThreatenedAt(rf: RankAndFile) = {
-    val enemyQueen = nextColour.opposite sided Queen
-
-    // todo - from here ...
-    // search for enemy queen, as a queen
-    // todo - how to enumerate RoleMarkers when they are not an enumeration without puttin into a seq.
-    false
+    roles.exists{role =>
+      val pretence = nextColour sided role
+      val lookingFor = nextColour.opposite sided role
+      pretence.validMoves(rf, this).exists{move => board.pieceAt(move.to) == Some(lookingFor)}
+    }
   }
 
   private def applyMove(move: Move): Game = {

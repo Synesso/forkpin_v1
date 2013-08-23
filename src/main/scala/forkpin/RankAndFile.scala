@@ -22,16 +22,16 @@ object RankAndFile extends Enumeration {
       if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
     }
 
-    def seek(game: Game, directions: BoardSide*): Set[Move] = seekPositions(game, 8, directions)
+    def seek(game: Game, colour: Colour, directions: BoardSide*): Set[Move] = seekPositions(game, colour, 8, directions)
 
-    def seek(game: Game, depth: Int, directions: BoardSide*): Set[Move] = seekPositions(game, depth, directions)
+    def seek(game: Game, colour: Colour, depth: Int, directions: BoardSide*): Set[Move] = seekPositions(game, colour, depth, directions)
 
-    private def seekPositions(game: Game, depth: Int, directions: Seq[BoardSide]): Set[Move] = {
-      val enemy = game.board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
-
+    private def seekPositions(game: Game, colour: Colour, depth: Int, directions: Seq[BoardSide]): Set[Move] = {
+      val enemy = colour.opposite
       def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[BoardSide]): Set[Move] = {
         remainingDirections match {
           case direction +: tail => {
+            println(s"seek($last -> $direction = ${last.towards(direction)}")
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
               game.board.colourAt(nextRf).map{colourHere =>
