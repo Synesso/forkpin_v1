@@ -1,6 +1,7 @@
 package forkpin
 
-import forkpin.Persistent.User
+import forkpin.persist.Persistent
+import Persistent.User
 import RankAndFile._
 
 class MoveEvaluator(game: Game, user: User) {
@@ -17,7 +18,6 @@ class MoveEvaluator(game: Game, user: User) {
     lazy val isOwnedPiece = piece.exists(_.colour == game.nextColour)
 
     lazy val canMoveToTarget = validMoves.contains(to)
-
 
     def invalid(reason: String): Either[InvalidMove, Move] = Left(InvalidMove(game, user, from, to, reason))
 

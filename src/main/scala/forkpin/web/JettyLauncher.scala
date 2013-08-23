@@ -1,8 +1,9 @@
-package forkpin
+package forkpin.web
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
-import forkpin.eshq.EventSourceServlet
+import forkpin.Config
+import eshq.EventSourceServlet
 
 object JettyLauncher extends Config {
 

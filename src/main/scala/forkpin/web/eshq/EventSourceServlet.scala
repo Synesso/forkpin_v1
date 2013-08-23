@@ -1,7 +1,7 @@
-package forkpin.eshq
+package forkpin.web.eshq
 
-import forkpin.ForkpinServlet
 import EventSource._
+import forkpin.web.ForkpinServlet
 
 class EventSourceServlet extends ForkpinServlet {
 

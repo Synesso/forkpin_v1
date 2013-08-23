@@ -3,7 +3,6 @@ package forkpin
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import RankAndFile._
-import forkpin.Persistent.GameRow
 
 class SerialisationSpec extends FlatSpec with ShouldMatchers {
 

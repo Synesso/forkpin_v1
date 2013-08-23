@@ -3,7 +3,8 @@ package forkpin
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import RankAndFile._
-import forkpin.Persistent.User
+import forkpin.persist.Persistent
+import Persistent.User
 
 class ThreatSpec extends FlatSpec with ShouldMatchers {
 

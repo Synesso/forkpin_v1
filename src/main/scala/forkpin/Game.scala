@@ -1,67 +1,8 @@
 package forkpin
 
-import scala.Some
-import forkpin.Persistent.{GameRow, User, user}
-
-
-object RankAndFile extends Enumeration {
-  type RankAndFile = Value
-  val A8, B8, C8, D8, E8, F8, G8, H8 = Value
-  val A7, B7, C7, D7, E7, F7, G7, H7 = Value
-  val A6, B6, C6, D6, E6, F6, G6, H6 = Value
-  val A5, B5, C5, D5, E5, F5, G5, H5 = Value
-  val A4, B4, C4, D4, E4, F4, G4, H4 = Value
-  val A3, B3, C3, D3, E3, F3, G3, H3 = Value
-  val A2, B2, C2, D2, E2, F2, G2, H2 = Value
-  val A1, B1, C1, D1, E1, F1, G1, H1 = Value
-
-  object +: {
-    def unapply[T](s: Seq[T]) = s.headOption.map(head => (head, s.tail))
-  }
-
-  implicit class RankAndFileWrapper(rf: RankAndFile) {
-
-    def towards(direction: Side): Option[RankAndFile] = {
-      val id = rf.id + direction.offset
-      if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
-    }
-
-    def seek(game: Game, directions: Side*): Set[Move] = seekPositions(game, 8, directions)
-
-    def seek(game: Game, depth: Int, directions: Side*): Set[Move] = seekPositions(game, depth, directions)
-
-    private def seekPositions(game: Game, depth: Int, directions: Seq[Side]): Set[Move] = {
-      val enemy = game.board.colourAt(rf).map(_.opposite).getOrElse(throw new RuntimeException(s"Cannot seek from empty location $rf"))
-
-      def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[Side]): Set[Move] = {
-        remainingDirections match {
-          case direction +: tail => {
-            if (remainingDepth == 0) seek(found, rf, depth, tail)
-            else last.towards(direction).map{nextRf =>
-              game.board.colourAt(nextRf).map{colourHere =>
-                if (colourHere.colour == enemy) {
-                  seek(found + Move(rf, nextRf, Some(nextRf)), rf, depth, tail)
-                } else {
-                  seek(found, rf, depth, tail)
-                }
-              }.getOrElse(seek(found + Move(rf, nextRf), nextRf, remainingDepth - 1, remainingDirections))
-            }.getOrElse(seek(found, rf, depth, tail))
-          }
-          case Nil => found
-        }
-      }
-
-      seek(Set.empty[Move], rf, depth, directions)
-    }
-
-  }
-}
+import forkpin.persist.Persistent
+import Persistent._
 import RankAndFile._
-
-case class Board(pieces: Vector[Option[Piece]] = Vector.fill(64)(None)) {
-  def pieceAt(rf: RankAndFile) = pieces(rf.id)
-  def colourAt(rf: RankAndFile) = pieceAt(rf).map(_.colour)
-}
 
 case class Game(id: Int, white: User, black: User,
                 nextMove: User,
@@ -109,7 +50,14 @@ case class Game(id: Int, white: User, black: User,
 
   def isOccupiedAt(rf: RankAndFile) = board.pieceAt(rf).isDefined
 
-  def isThreatenedAt(rf: RankAndFile) = false // todo !!
+  def isThreatenedAt(rf: RankAndFile) = {
+    val enemyQueen = nextColour.opposite sided Queen
+
+    // todo - from here ...
+    // search for enemy queen, as a queen
+    // todo - how to enumerate RoleMarkers when they are not an enumeration without puttin into a seq.
+    false
+  }
 
   private def applyMove(move: Move): Game = {
     val movingPiece = this.board.pieces(move.from.id)
@@ -153,20 +101,6 @@ object Game {
   }
 }
 
-case class Move(from: RankAndFile, to: RankAndFile,
-                capture: Option[RankAndFile] = None,
-                implication: Option[Move] = None,
-                promote: Option[Promotion] = None) {
-  lazy val forClient: Map[String, Any] = Map("from" -> from.toString, "to" -> to.toString)
-}
-
-case class Promotion(at: RankAndFile, to: Piece)
-
-case class InvalidMove(game: Game, user: User, from: RankAndFile, to: RankAndFile, reason: String) {
-  lazy val forClient: Map[String, Any] = Map("reason" -> reason, "user" -> user.gPlusId, "game" -> game.forClient,
-    "from" -> from, "to" -> to)
-}
-
 sealed trait CastlingAvailability {
   lazy val betweenRookAndKing = {
     def collect(next: Option[RankAndFile], found: Seq[RankAndFile]): Seq[RankAndFile] = next match {
@@ -179,7 +113,7 @@ sealed trait CastlingAvailability {
   val fen: Char
   val kingMoves: Seq[RankAndFile]
   val rookStarts: RankAndFile
-  val side: Side
+  val side: BoardSide
 }
 case object WhiteKingSide extends CastlingAvailability {
   val (fen, kingMoves, rookStarts, side) = ('K', Seq(E1, F1, G1), H1, KingSide)
@@ -195,7 +129,7 @@ case object BlackQueenSide extends CastlingAvailability {
 }
 
 case class Castling(permitted: Map[Colour, Seq[CastlingAvailability]] = Map(
-    White -> Seq(WhiteKingSide, WhiteQueenSide), Black -> Seq(BlackKingSide, BlackQueenSide))) {
+  White -> Seq(WhiteKingSide, WhiteQueenSide), Black -> Seq(BlackKingSide, BlackQueenSide))) {
 
   lazy val flag: String = Seq(White, Black).flatMap(permitted.get).flatten.map(_.fen.toString)
     .reduceLeftOption{(next, acc) => next + acc

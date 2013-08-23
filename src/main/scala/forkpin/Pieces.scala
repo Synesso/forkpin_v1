@@ -8,11 +8,13 @@ sealed trait San {
 
 trait Role extends San {
   def validMoves(rf: RankAndFile, game: Game): Set[Move]
+  def is(aCertainColour: Colour) = colour == aCertainColour
   val sanRole: Char
-  val forward: Side
+  val forward: BoardSide
   val colour: Colour
   val opposite: Colour
 }
+trait RoleMarker
 trait Pawn extends Role {
   val sanRole = 'p'
   def validMoves(rf: RankAndFile, game: Game) = {
@@ -27,6 +29,7 @@ trait Pawn extends Role {
     rf.seek(game, depth, forward) ++ captures
   }
 }
+object Pawn extends RoleMarker
 trait Knight extends Role {
   val sanRole = 'n'
   def validMoves(rf: RankAndFile, game: Game) = rf.seek(game, 1,
@@ -35,33 +38,31 @@ trait Knight extends Role {
     QueenSide + BlackSide + BlackSide, QueenSide + QueenSide + BlackSide,
     QueenSide + WhiteSide + WhiteSide, QueenSide + QueenSide + WhiteSide)
 }
+object Knight extends RoleMarker
 trait Bishop extends Role {
   val sanRole = 'b'
   def validMoves(rf: RankAndFile, game: Game) = rf.seek(game,
     KingSide + BlackSide, KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
 }
+object Bishop extends RoleMarker
 trait Rook extends Role {
   val sanRole = 'r'
   def validMoves(rf: RankAndFile, game: Game) = rf.seek(game, KingSide, QueenSide, BlackSide, WhiteSide)
 }
-object Rook {
-  def of(colour: Colour) = colour match { // todo - not exhaustive
-    case White => WhiteRook
-    case Black => BlackRook
-  }
-}
+object Rook extends RoleMarker
 trait Queen extends Role {
   val sanRole = 'q'
   def validMoves(rf: RankAndFile, game: Game) = rf.seek(game,
     KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
     KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
 }
+object Queen extends RoleMarker
 trait King extends Role {
   val sanRole = 'k'
   def validMoves(rf: RankAndFile, game: Game) = {
     val castlingMoves = {
       game.castling.availabilityFor(colour).filter{ca =>
-        game.board.pieceAt(ca.rookStarts).exists(_ == Rook.of(colour)) &&
+        game.board.pieceAt(ca.rookStarts).exists(_ == colour.sided(Rook)) &&
         ca.betweenRookAndKing.forall(rf => !game.isOccupiedAt(rf)) &&
         ca.kingMoves.forall{rf => !game.isThreatenedAt(rf)}
       }.map{ca => Move(rf, ca.kingMoves.last, implication = Some(Move(ca.rookStarts, ca.kingMoves(1))))}
@@ -72,12 +73,14 @@ trait King extends Role {
       KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
   }
 }
+object King extends RoleMarker
 
 sealed trait Colour extends San {
   val sanColour: Char
   val colour: Colour
   val opposite: Colour
-  val forward: Side
+  val forward: BoardSide
+  def sided(role: RoleMarker): Piece
 }
 trait Black extends Colour {
   val sanColour = 'b'
@@ -85,6 +88,14 @@ trait Black extends Colour {
   val colour = Black
   val opposite = White
   val forward = WhiteSide
+  def sided(role: RoleMarker) = role match {
+    case Pawn => BlackPawn
+    case Knight => BlackKnight
+    case Bishop => BlackBishop
+    case Rook => BlackRook
+    case Queen => BlackQueen
+    case King => BlackKing
+  }
 }
 case object Black extends Black
 trait White extends Colour {
@@ -93,6 +104,14 @@ trait White extends Colour {
   val colour = White
   val opposite = Black
   val forward = BlackSide
+  def sided(role: RoleMarker) = role match {
+    case Pawn => WhitePawn
+    case Knight => WhiteKnight
+    case Bishop => WhiteBishop
+    case Rook => WhiteRook
+    case Queen => WhiteQueen
+    case King => WhiteKing
+  }
 }
 case object White extends White
 
@@ -110,21 +129,21 @@ case object BlackRook extends Piece with Black with Rook
 case object BlackQueen extends Piece with Black with Queen
 case object BlackKing extends Piece with Black with King
 
-trait Side {
+trait BoardSide {
   val offset: Int
-  def +(side: Side) = new Object with Side {
-    val offset: Int = Side.this.offset + side.offset
+  def +(side: BoardSide) = new Object with BoardSide {
+    val offset: Int = BoardSide.this.offset + side.offset
   }
 }
-case object QueenSide extends Side {
+case object QueenSide extends BoardSide {
   val offset = -1
 }
-case object KingSide extends Side {
+case object KingSide extends BoardSide {
   val offset = 1
 }
-case object BlackSide extends Side {
+case object BlackSide extends BoardSide {
   val offset = -8
 }
-case object WhiteSide extends Side {
+case object WhiteSide extends BoardSide {
   val offset = 8
 }

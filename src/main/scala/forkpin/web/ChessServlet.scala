@@ -1,11 +1,12 @@
-package forkpin
+package forkpin.web
 
 import com.google.api.client.googleapis.auth.oauth2.{GoogleTokenResponse, GoogleCredential}
 import com.google.api.services.plus.Plus
 import java.math.BigInteger
 import java.security.SecureRandom
 import org.scalatra._
-import forkpin.gplus._
+import forkpin.web.gplus._
+import forkpin.persist.Persistent
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
 

@@ -1,4 +1,4 @@
-package forkpin.eshq
+package forkpin.web.eshq
 
 import forkpin.Config
 import dispatch._

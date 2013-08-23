@@ -2,7 +2,8 @@ package forkpin
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-import forkpin.Persistent.User
+import forkpin.persist.Persistent
+import Persistent.User
 
 class GameSpec extends FlatSpec with ShouldMatchers {
 

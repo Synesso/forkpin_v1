@@ -1,10 +1,11 @@
-package forkpin
+package forkpin.persist
 
 import java.sql.Timestamp
 import scala.slick.driver.PostgresDriver.simple._
 import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
+import forkpin.{Game, Config}
 
 object Persistent extends Config {
 
