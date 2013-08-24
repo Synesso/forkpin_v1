@@ -3,6 +3,7 @@ package forkpin
 import forkpin.persist.Persistent.User
 import RankAndFile._
 import org.specs2.Specification
+import TestImplicits._
 
 class MovesSpec extends Specification { def is = s2"""
 
@@ -34,6 +35,8 @@ class MovesSpec extends Specification { def is = s2"""
     not castle queenside when piece is in the way $castleQueenSideDeniedIntermediatePiece
 
   """
+
+  // todo - continue with pawn moves.
 
   val startGame = Game(1, User("w", null), User("b", null), User("w", null))
   val emptyGame = startGame.copy(board = Board())
@@ -95,16 +98,21 @@ class MovesSpec extends Specification { def is = s2"""
 
   def castleKingSideDeniedAlreadyMoved = {
     val game = castleGame.copy(castling = Castling(Map(White -> Seq(WhiteQueenSide))))
-    WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not contain C1
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(C1) and not(contain(G1))
   }
 
   def castleKingSideDeniedIntermediatePiece = {
     val game = castleGame.place(F1 -> WhiteBishop)
-    WhiteKing.validMoves(E1, game).map(_.to) must contain(C1) and not contain G1
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(C1) and not(contain(G1))
   }
 
-  def castleQueenSideDeniedAlreadyMoved = pending
+  def castleQueenSideDeniedAlreadyMoved = {
+    val game = castleGame.copy(castling = Castling(Map(White -> Seq(WhiteKingSide))))
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not(contain(C1))
+  }
 
-  def castleQueenSideDeniedIntermediatePiece = pending
-
+  def castleQueenSideDeniedIntermediatePiece = {
+    val game = castleGame.place(D1 -> WhiteBishop)
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not(contain(C1))
+  }
 }
