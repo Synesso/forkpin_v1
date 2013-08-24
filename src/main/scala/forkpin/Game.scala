@@ -54,7 +54,7 @@ case class Game(id: Int, white: User, black: User,
     roles.exists{role =>
       val pretence = nextColour sided role
       val lookingFor = nextColour.opposite sided role
-      pretence.validMoves(rf, this).exists{move => board.pieceAt(move.to) == Some(lookingFor)}
+      pretence.validCapturingMoves(rf, this).exists{move => board.pieceAt(move.to) == Some(lookingFor)}
     }
   }
 

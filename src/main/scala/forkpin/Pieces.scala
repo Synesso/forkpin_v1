@@ -8,6 +8,7 @@ sealed trait San {
 
 trait Role extends San {
   def validMoves(rf: RankAndFile, game: Game): Set[Move]
+  def validCapturingMoves(rf: RankAndFile, game: Game): Set[Move] = validMoves(rf, game)
   def is(aCertainColour: Colour) = colour == aCertainColour
   val sanRole: Char
   val forward: BoardSide
@@ -24,11 +25,15 @@ trait Pawn extends Role {
       case (7, BlackSide) => 2
       case _ => 1
     }
-    val captures: Set[Move] = Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
-      game.board.colourAt(pos) == Some(opposite)
-    }.map(to => Move(rf, to, Some(to)))
+    val captures: Set[Move] = validCapturingMoves(rf, game)
     rf.seek(game, colour, depth, forward) ++ captures
   }
+
+  override def validCapturingMoves(rf: RankAndFile, game: Game) =
+    Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
+      game.board.colourAt(pos) == Some(opposite)
+    }.map(to => Move(rf, to, Some(to)))
+
 }
 object Pawn extends RoleMarker
 trait Knight extends Role {
@@ -60,6 +65,11 @@ trait Queen extends Role {
 object Queen extends RoleMarker
 trait King extends Role {
   val sanRole = 'k'
+
+  override def validCapturingMoves(rf: RankAndFile, game: Game): Set[Move] = rf.seek(game, colour, 1,
+    KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
+    KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
+
   def validMoves(rf: RankAndFile, game: Game) = {
     val castlingMoves = {
       game.castling.availabilityFor(colour).filter{ca =>
@@ -69,9 +79,7 @@ trait King extends Role {
       }.map{ca => Move(rf, ca.kingMoves.last, implication = Some(Move(ca.rookStarts, ca.kingMoves(1))))}
     }.toSet
 
-    castlingMoves ++ rf.seek(game, colour, 1,
-      KingSide, QueenSide, BlackSide, WhiteSide, KingSide + BlackSide,
-      KingSide + WhiteSide, QueenSide + BlackSide, QueenSide + WhiteSide)
+    castlingMoves ++ validCapturingMoves(rf, game)
   }
 }
 object King extends RoleMarker

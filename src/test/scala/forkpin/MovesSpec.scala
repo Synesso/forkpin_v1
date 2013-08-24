@@ -27,15 +27,22 @@ class MovesSpec extends Specification { def is = s2"""
     move along rank, file and diagonally to a depth of 1 $king1
     include and stop at enemy pieces $king2
     exclude and stop at friendly pieces $king3
-    castle kingside when permitted $king4
-    not castle kingside when denied $king5
-    castle queenside when permitted $king6
-    not castle queenside when denied $king7
+    castle when permitted $castleOk
+    not castle kingside when already moved $castleKingSideDeniedAlreadyMoved
+    not castle kingside when piece is in the way $castleKingSideDeniedIntermediatePiece
+    not castle queenside when already moved $castleQueenSideDeniedAlreadyMoved
+    not castle queenside when piece is in the way $castleQueenSideDeniedIntermediatePiece
 
   """
 
-  val emptyGame = Game(1, User("w", null), User("b", null), User("w", null), board = Board())
   val startGame = Game(1, User("w", null), User("b", null), User("w", null))
+  val emptyGame = startGame.copy(board = Board())
+  val castleGame = startGame.copy(board = Board(pieces = Vector[(RankAndFile, Piece)](
+    A1 -> WhiteRook, E1 -> WhiteKing, H1 -> WhiteRook,
+    A8 -> BlackRook, E8 -> BlackKing, H8 -> BlackRook
+  ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
+    arr.updated(next._1.id, Some(next._2))
+  }))
 
   def rook1 = WhiteRook.validMoves(D6, emptyGame).map(_.to) must containTheSameElementsAs(
     Seq(D1, D2, D3, D4, D5, D7, D8, A6, B6, C6, E6, F6, G6, H6))
@@ -84,10 +91,20 @@ class MovesSpec extends Specification { def is = s2"""
     Seq(A3, A4, B4, C4, C3)
   )
 
-  // todo - from here
+  def castleOk = WhiteKing.validMoves(E1, castleGame).map(_.to) must containAllOf(Seq(C1, G1))
 
-  def king4 = pending
-  def king5 = pending
-  def king6 = pending
-  def king7 = pending
+  def castleKingSideDeniedAlreadyMoved = {
+    val game = castleGame.copy(castling = Castling(Map(White -> Seq(WhiteQueenSide))))
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not contain C1
+  }
+
+  def castleKingSideDeniedIntermediatePiece = {
+    val game = castleGame.place(F1 -> WhiteBishop)
+    WhiteKing.validMoves(E1, game).map(_.to) must contain(C1) and not contain G1
+  }
+
+  def castleQueenSideDeniedAlreadyMoved = pending
+
+  def castleQueenSideDeniedIntermediatePiece = pending
+
 }

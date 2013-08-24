@@ -42,7 +42,4 @@ class RankAndFileSpec extends Specification { def is = s2"""
   def edge07 = H8 towards QueenSide must beSome(G8)
   def edge08 = H8 towards WhiteSide must beSome(H7)
 
-  // todo - a rank/file should know its rank and file, not just its ordinal, so that it can detect edge of board
-
-
 }
