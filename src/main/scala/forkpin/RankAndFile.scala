@@ -18,8 +18,12 @@ object RankAndFile extends Enumeration {
   implicit class RankAndFileWrapper(rf: RankAndFile) {
 
     def towards(direction: BoardSide): Option[RankAndFile] = {
-      val id = rf.id + direction.offset
-      if (id < 0 || id >= RankAndFile.maxId) None else Some(RankAndFile(id))
+      val (x, y) = (rf.id / 8 + direction.offsetRank, rf.id % 8 + direction.offsetFile)
+      if (x > 7 || y > 7 || x < 0 || y < 0) None
+      else {
+        val id = rf.id + (direction.offsetRank * 8) + direction.offsetFile
+        Some(RankAndFile(id))
+      }
     }
 
     def seek(game: Game, colour: Colour, directions: BoardSide*): Set[Move] = seekPositions(game, colour, 8, directions)
@@ -31,7 +35,6 @@ object RankAndFile extends Enumeration {
       def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[BoardSide]): Set[Move] = {
         remainingDirections match {
           case direction +: tail => {
-            println(s"seek($last -> $direction = ${last.towards(direction)}")
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
               game.board.colourAt(nextRf).map{colourHere =>
@@ -40,7 +43,9 @@ object RankAndFile extends Enumeration {
                 } else {
                   seek(found, rf, depth, tail)
                 }
-              }.getOrElse(seek(found + Move(rf, nextRf), nextRf, remainingDepth - 1, remainingDirections))
+              }.getOrElse{
+                seek(found + Move(rf, nextRf), nextRf, remainingDepth - 1, remainingDirections)
+              }
             }.getOrElse(seek(found, rf, depth, tail))
           }
           case Nil => found

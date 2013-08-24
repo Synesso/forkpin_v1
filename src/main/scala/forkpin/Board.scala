@@ -7,21 +7,13 @@ case class Board(pieces: Vector[Option[Piece]] = Vector.fill(64)(None)) {
   def colourAt(rf: RankAndFile) = pieceAt(rf).map(_.colour)
 }
 
-trait BoardSide {
-  val offset: Int
-  def +(side: BoardSide) = new Object with BoardSide {
-    val offset: Int = BoardSide.this.offset + side.offset
-  }
+abstract class BoardSide(val offsetRank: Int = 0, val offsetFile: Int = 0) {
+  def +(side: BoardSide) = new BoardSide(
+    offsetRank = BoardSide.this.offsetRank + side.offsetRank,
+    offsetFile = BoardSide.this.offsetFile + side.offsetFile){}
 }
-case object QueenSide extends BoardSide {
-  val offset = -1
-}
-case object KingSide extends BoardSide {
-  val offset = 1
-}
-case object BlackSide extends BoardSide {
-  val offset = -8
-}
-case object WhiteSide extends BoardSide {
-  val offset = 8
-}
+
+case object QueenSide extends BoardSide(offsetFile = -1)
+case object KingSide extends BoardSide(offsetFile = 1)
+case object BlackSide extends BoardSide(offsetRank = -1)
+case object WhiteSide extends BoardSide(offsetRank = 1)
