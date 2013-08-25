@@ -34,6 +34,28 @@ class MovesSpec extends Specification { def is = s2"""
     not castle queenside when already moved $castleQueenSideDeniedAlreadyMoved
     not castle queenside when piece is in the way $castleQueenSideDeniedIntermediatePiece
 
+  A white pawn should
+    move forward 1 or 2 squares from 2nd rank $whitePawnFirstMove
+    move forward 1 square from other ranks $whitePawnSubsequentMove
+    take diagonally forward, queenside $whitePawnTakeQueenSide
+    take diagonally forward, kingside $whitePawnTakeKingSide
+    take diagonally forward only, forking $whitePawnTakeEitherSide
+    take diagonally or move 2 squares from 2nd rank $whitePawnTakeOrTwoMoves
+    become blocked by enemy pieces on the file $whitePawnBlockedByEnemy
+    become blocked by friendly pieces on the file $whitePawnBlockedByFriend
+    take diagonally even when blocked on the file $whitePawnBlockedCanStillTake
+
+  A black pawn should
+    move forward 1 or 2 squares from 2nd rank $blackPawnFirstMove
+    move forward 1 square from other ranks $blackPawnSubsequentMove
+    take diagonally forward, queenside $blackPawnTakeQueenSide
+    take diagonally forward, kingside $blackPawnTakeKingSide
+    take diagonally forward only, forking $blackPawnTakeEitherSide
+    take diagonally or move 2 squares from 2nd rank $blackPawnTakeOrTwoMoves
+    become blocked by enemy pieces on the file $blackPawnBlockedByEnemy
+    become blocked by friendly pieces on the file $blackPawnBlockedByFriend
+    take diagonally even when blocked on the file $blackPawnBlockedCanStillTake
+
   """
 
   // todo - continue with pawn moves.
@@ -115,4 +137,50 @@ class MovesSpec extends Specification { def is = s2"""
     val game = castleGame.place(D1 -> WhiteBishop)
     WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not(contain(C1))
   }
+
+  def whitePawnFirstMove = WhitePawn.validMoves(F2, startGame).map(_.to) must containTheSameElementsAs(Seq(F3, F4))
+
+  def whitePawnSubsequentMove = WhitePawn.validMoves(B5, emptyGame).map(_.to) must containTheSameElementsAs(Seq(B6))
+
+  def whitePawnTakeQueenSide = WhitePawn.validMoves(D5, emptyGame.place(E6 -> BlackQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(D6, E6))
+
+  def whitePawnTakeKingSide = WhitePawn.validMoves(D5, emptyGame.place(C6 -> BlackQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(D6, C6))
+
+  def whitePawnTakeEitherSide = WhitePawn.validMoves(D5, emptyGame.surround(D5, BlackQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(E6, C6))
+
+  def whitePawnTakeOrTwoMoves = WhitePawn.validMoves(C2, emptyGame.place(D3 -> BlackPawn)).map(_.to) must
+    containTheSameElementsAs(Seq(D3, C3, C4))
+
+  def whitePawnBlockedByEnemy = WhitePawn.validMoves(C2, emptyGame.place(C3 -> BlackPawn)).map(_.to) must beEmpty
+
+  def whitePawnBlockedByFriend = WhitePawn.validMoves(C2, emptyGame.place(C3 -> WhitePawn)).map(_.to) must beEmpty
+
+  def whitePawnBlockedCanStillTake = WhitePawn.validMoves(C2, emptyGame.place(C3 -> WhitePawn).place(B3 -> BlackRook))
+    .map(_.to) must containTheSameElementsAs(Seq(B3))
+
+  def blackPawnFirstMove = BlackPawn.validMoves(F7, startGame).map(_.to) must containTheSameElementsAs(Seq(F6, F5))
+
+  def blackPawnSubsequentMove = BlackPawn.validMoves(B5, emptyGame).map(_.to) must containTheSameElementsAs(Seq(B4))
+
+  def blackPawnTakeQueenSide = BlackPawn.validMoves(D5, emptyGame.place(E4 -> WhiteQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(D4, E4))
+
+  def blackPawnTakeKingSide = BlackPawn.validMoves(D5, emptyGame.place(C4 -> WhiteQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(D4, C4))
+
+  def blackPawnTakeEitherSide = BlackPawn.validMoves(D5, emptyGame.surround(D5, WhiteQueen)).map(_.to) must
+    containTheSameElementsAs(Seq(E4, C4))
+
+  def blackPawnTakeOrTwoMoves = BlackPawn.validMoves(C7, emptyGame.place(D6 -> WhitePawn)).map(_.to) must
+    containTheSameElementsAs(Seq(D6, C6, C5))
+
+  def blackPawnBlockedByEnemy = BlackPawn.validMoves(C7, emptyGame.place(C6 -> WhitePawn)).map(_.to) must beEmpty
+
+  def blackPawnBlockedByFriend = BlackPawn.validMoves(C7, emptyGame.place(C6 -> BlackPawn)).map(_.to) must beEmpty
+
+  def blackPawnBlockedCanStillTake = BlackPawn.validMoves(C7, emptyGame.place(C6 -> BlackPawn).place(B6 -> WhiteRook))
+    .map(_.to) must containTheSameElementsAs(Seq(B6))
 }

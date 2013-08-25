@@ -17,20 +17,27 @@ object RankAndFile extends Enumeration {
 
   implicit class RankAndFileWrapper(rf: RankAndFile) {
 
+    lazy val (r, f) = (rf.id / 8, rf.id % 8)
+
     def towards(direction: BoardSide): Option[RankAndFile] = {
-      val (x, y) = (rf.id / 8 + direction.offsetRank, rf.id % 8 + direction.offsetFile)
-      if (x > 7 || y > 7 || x < 0 || y < 0) None
+      val (newR, newF) = (r + direction.offsetRank, f + direction.offsetFile)
+      if (newR > 7 || newF > 7 || newR < 0 || newF < 0) None
       else {
         val id = rf.id + (direction.offsetRank * 8) + direction.offsetFile
         Some(RankAndFile(id))
       }
     }
 
-    def seek(game: Game, colour: Colour, directions: BoardSide*): Set[Move] = seekPositions(game, colour, 8, directions)
+    def seek(game: Game, colour: Colour, directions: BoardSide*): Set[Move] =
+      seekPositions(game, colour, 8, allowCapture = true, directions)
 
-    def seek(game: Game, colour: Colour, depth: Int, directions: BoardSide*): Set[Move] = seekPositions(game, colour, depth, directions)
+    def seek(game: Game, colour: Colour, depth: Int, directions: BoardSide*): Set[Move] =
+      seekPositions(game, colour, depth, allowCapture = true, directions)
 
-    private def seekPositions(game: Game, colour: Colour, depth: Int, directions: Seq[BoardSide]): Set[Move] = {
+    def seek(game: Game, colour: Colour, depth: Int, allowCapture: Boolean, directions: BoardSide*): Set[Move] =
+      seekPositions(game, colour, depth, allowCapture, directions)
+
+    private def seekPositions(game: Game, colour: Colour, depth: Int, allowCapture: Boolean, directions: Seq[BoardSide]): Set[Move] = {
       val enemy = colour.opposite
       def seek(found: Set[Move], last: RankAndFile, remainingDepth: Int, remainingDirections: Seq[BoardSide]): Set[Move] = {
         remainingDirections match {
@@ -38,7 +45,7 @@ object RankAndFile extends Enumeration {
             if (remainingDepth == 0) seek(found, rf, depth, tail)
             else last.towards(direction).map{nextRf =>
               game.board.colourAt(nextRf).map{colourHere =>
-                if (colourHere.colour == enemy) {
+                if (allowCapture && colourHere.colour == enemy) {
                   seek(found + Move(rf, nextRf, Some(nextRf)), rf, depth, tail)
                 } else {
                   seek(found, rf, depth, tail)

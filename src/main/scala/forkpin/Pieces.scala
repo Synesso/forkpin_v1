@@ -26,7 +26,7 @@ trait Pawn extends Role {
       case _ => 1
     }
     val captures: Set[Move] = validCapturingMoves(rf, game)
-    rf.seek(game, colour, depth, forward) ++ captures
+    rf.seek(game, colour, depth, allowCapture = false, forward) ++ captures
   }
 
   override def validCapturingMoves(rf: RankAndFile, game: Game) =
