@@ -57,9 +57,6 @@ class MovesSpec extends Specification { def is = s2"""
     take diagonally even when blocked on the file $blackPawnBlockedCanStillTake
 
   """
-
-  // todo - continue with pawn moves.
-
   val startGame = Game(1, User("w", null), User("b", null), User("w", null))
   val emptyGame = startGame.copy(board = Board())
   val castleGame = startGame.copy(board = Board(pieces = Vector[(RankAndFile, Piece)](
@@ -119,7 +116,7 @@ class MovesSpec extends Specification { def is = s2"""
   def castleOk = WhiteKing.validMoves(E1, castleGame).map(_.to) must containAllOf(Seq(C1, G1))
 
   def castleKingSideDeniedAlreadyMoved = {
-    val game = castleGame.copy(castling = Castling(Map(White -> Seq(WhiteQueenSide))))
+    val game = castleGame.copy(castling = Castling(Set(WhiteQueenSide)))
     WhiteKing.validMoves(E1, game).map(_.to) must contain(C1) and not(contain(G1))
   }
 
@@ -129,7 +126,7 @@ class MovesSpec extends Specification { def is = s2"""
   }
 
   def castleQueenSideDeniedAlreadyMoved = {
-    val game = castleGame.copy(castling = Castling(Map(White -> Seq(WhiteKingSide))))
+    val game = castleGame.copy(castling = Castling(Set(WhiteKingSide)))
     WhiteKing.validMoves(E1, game).map(_.to) must contain(G1) and not(contain(C1))
   }
 

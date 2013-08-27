@@ -109,30 +109,32 @@ sealed trait CastlingAvailability {
     collect(kingMoves.head.towards(side), Seq.empty)
   }
 
+  val colour: Colour
   val fen: Char
   val kingMoves: Seq[RankAndFile]
   val rookStarts: RankAndFile
   val side: BoardSide
 }
-case object WhiteKingSide extends CastlingAvailability {
+case object WhiteKingSide extends White with CastlingAvailability {
   val (fen, kingMoves, rookStarts, side) = ('K', Seq(E1, F1, G1), H1, KingSide)
 }
-case object WhiteQueenSide extends CastlingAvailability {
+case object WhiteQueenSide extends White with CastlingAvailability {
   val (fen, kingMoves, rookStarts, side) = ('Q', Seq(E1, D1, C1), A1, QueenSide)
 }
-case object BlackKingSide extends CastlingAvailability {
+case object BlackKingSide extends Black with CastlingAvailability {
   val (fen, kingMoves, rookStarts, side) = ('k', Seq(E8, F8, G8), H8, KingSide)
 }
-case object BlackQueenSide extends CastlingAvailability {
+case object BlackQueenSide extends Black with CastlingAvailability {
   val (fen, kingMoves, rookStarts, side) = ('q', Seq(E8, D8, C8), A8, QueenSide)
 }
 
-case class Castling(permitted: Map[Colour, Seq[CastlingAvailability]] = Map(
-  White -> Seq(WhiteKingSide, WhiteQueenSide), Black -> Seq(BlackKingSide, BlackQueenSide))) {
+case class Castling(permitted: Set[CastlingAvailability] =
+                    Set(WhiteKingSide, WhiteQueenSide, BlackKingSide, BlackQueenSide)) {
 
-  lazy val flag: String = Seq(White, Black).flatMap(permitted.get).flatten.map(_.fen.toString)
-    .reduceLeftOption{(next, acc) => next + acc
-  }.getOrElse("-")
+  lazy val flag = permitted.map(_.fen).mkString.sorted match {
+    case "" => "-"
+    case s => s
+  }
 
-  def availabilityFor(colour: Colour) = permitted.getOrElse(colour, Nil)
+  def availabilityFor(colour: Colour) = permitted.filter(ca => ca.colour == colour)
 }

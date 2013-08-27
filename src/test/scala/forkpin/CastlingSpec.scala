@@ -1,53 +1,47 @@
 package forkpin
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
+import org.specs2.{ScalaCheck, Specification}
+import org.scalacheck.{Arbitrary, Gen}
+import org.specs2.execute.Result
 
-class CastlingSpec extends FlatSpec with ShouldMatchers {
+class CastlingSpec extends Specification with ScalaCheck { def is = s2"""
 
-  "The flag" should "be a dash when no options are available" in {
-    assertCastling("-")
-  }
+  A non-empty castling object must
+    have a flag which is $alphabeticallySorted
+    have the $sameSizeAsInputSet
+    contain $onlyKorQ
+    contain $asManyKsAsKingSides
+    contain $asManyQsAsQueenSides
+    contain $asManyUpperCaseAsWhite
+    contain $asManyLowerCaseAsBlack
 
-  it should "be 'k' when only black can move kingside" in {
-    assertCastling("k", Black -> BlackKingSide) // todo - why do I specify colour twice?
-  }
+  An empty castling object must
+    have a flag of '-' $emptyFlagIsDash
+"""
 
-  it should "be 'K' when only white can move kingside" in {
-    assertCastling("K", White -> WhiteKingSide)
-  }
+  implicit val caSet = Arbitrary(Gen.containerOf1[Set, CastlingAvailability](
+    Gen.oneOf(Seq(WhiteKingSide, WhiteQueenSide, BlackKingSide, BlackQueenSide))))
 
-  it should "be 'q' when only black can move queenside" in {
-    assertCastling("q", Black -> BlackQueenSide)
-  }
+  def alphabeticallySorted = "alphabetically sorted" ! castlingMust(c => c.flag.sorted must_== c.flag)
 
-  it should "be 'Q' when only white can move queenside" in {
-    assertCastling("Q", White -> WhiteQueenSide)
-  }
+  def sameSizeAsInputSet = "same size as input set" ! castlingMust(c => c.flag.size must_== c.permitted.size)
 
-  it should "be 'Kk' when only moves are kingside" in {
-    assertCastling("Kk", Black -> BlackKingSide, White -> WhiteKingSide)
-  }
+  def onlyKorQ = "only ks or qs" !
+    castlingMust(c => c.flag.toLowerCase.replaceAll("[k|q]", "") must beEmpty)
 
-  it should "be 'Qq' when only moves are queenside" in {
-    assertCastling("Qq", Black -> BlackQueenSide, White -> WhiteQueenSide)
-  }
+  def asManyKsAsKingSides = "as many Ks as king sides" !
+    castlingMust(c => c.flag.toLowerCase.count(_ == 'k') must_== c.permitted.count(_.side == KingSide))
 
-  "availability" should "not fail when empty" in {
-    assert(Castling(permitted = Map.empty).availabilityFor(White) === Seq.empty)
-  }
+  def asManyQsAsQueenSides = "as many Qs as queen sides" !
+    castlingMust(c => c.flag.toLowerCase.count(_ == 'q') must_== c.permitted.count(_.side == QueenSide))
 
-  it should "return only the availability for the given colour" in {
-    assert(Castling().availabilityFor(Black) === Seq(BlackKingSide, BlackQueenSide))
-  }
+  def asManyUpperCaseAsWhite = "as many uppercase as white" !
+    castlingMust(c => c.flag.count(_.isLower) == c.permitted.count(_.colour == Black))
 
-  def assertCastling(expected: String, entries: (Colour, CastlingAvailability)*) = {
-    val map = entries.foldLeft(Map.empty[Colour, Seq[CastlingAvailability]]){case (map, (colour, ca)) =>
-      map.updated(colour, ca +: map.getOrElse(colour, Seq.empty[CastlingAvailability]))
-    }
-    assert(Castling(map).flag === expected)
-  }
+  def asManyLowerCaseAsBlack = "as many lowercase as black" !
+    castlingMust(c => c.flag.count(_.isUpper) == c.permitted.count(_.colour == White))
 
-  // todo - this is an interesting exercise for scalacheck - for non-empty, always caps before lower.
-  // always K before Q within case, always white is caps, always black is lower
+  def castlingMust(p: Castling => Result) = prop {(ca: Set[CastlingAvailability]) => p(Castling(ca))}
+
+  def emptyFlagIsDash = Castling(permitted = Set()).flag must_== "-"
 }
