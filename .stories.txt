@@ -1,5 +1,0 @@
-player can log in
-player can create an open challenge
-player can challenge a friend
-player can accept an open challenge
-player can log out
