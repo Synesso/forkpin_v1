@@ -8,8 +8,9 @@ import Persistent.User
 import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.{Gen, Arbitrary}
 import org.specs2.execute.Result
+import org.specs2.mock.Mockito
 
-class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
+class ThreatSpec extends Specification with ScalaCheck with TestImplicits with Mockito { def is = s2"""
 
   Any square should
     have $noThreatOnEmptyBoard
@@ -127,7 +128,7 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def 
   */
 
 
-  val (white, black) = (User("w", null), User("b", null))
+  val (white, black) = (mock[User], mock[User])
 
   def game(pieces: (RankAndFile, Piece)*): Game = {
     val b = Board(pieces = pieces.foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
