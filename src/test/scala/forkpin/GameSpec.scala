@@ -1,56 +1,71 @@
 package forkpin
 
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
 import forkpin.persist.Persistent
 import Persistent.User
+import org.specs2.{ScalaCheck, Specification}
+import RankAndFile._
+import org.scalacheck.{Arbitrary, Gen}
 
-class GameSpec extends FlatSpec with ShouldMatchers {
+class GameSpec extends Specification with ScalaCheck { def is = s2"""
+
+  A new game must
+    have a starting position san $startPositionSan
+    have a starting position fen $startPositionFen
+    expect white to play $expectWhiteToPlay
+    have no en passant target $haveNoEnPassantTarget
+    permit any kind of castling $allowAllCastling
+    allow white pawns to move 1 or 2 squares $allWhitePawnsToMove1Or2Squares
+    allow white knights to move to 2 valid squares $whiteKnightsCanMove
+    disallow any other move $nothingElseCanMove
+
+"""
 
   val black = User("black", null)
   val white = User("white", null)
   val aNewGame = Game(1, white, black)
 
-  "A new game" should "have a starting position san" in {
-    assert(aNewGame.san === "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+  def startPositionSan = aNewGame.san must_== "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+
+  def startPositionFen = aNewGame.fen must_== "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+  def expectWhiteToPlay = aNewGame.nextMove must_== white
+
+  def haveNoEnPassantTarget = aNewGame.enPassantTarget must beNone
+
+  def allowAllCastling = aNewGame.castling.permitted must haveTheSameElementsAs(
+    Set(BlackKingSide, BlackQueenSide, WhiteKingSide, WhiteQueenSide))
+
+  def allWhitePawnsToMove1Or2Squares = Arbitrary(pawnMoves){case (from: RankAndFile, to: RankAndFile) =>
+    aNewGame.move(white, from, to) must beRight
   }
 
-  it should "have a starting position fen" in {
-    assert(aNewGame.fen === "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  def whiteKnightsCanMove = Arbitrary(knightMoves){case (from: RankAndFile, to: RankAndFile) =>
+    aNewGame.move(white, from, to) must beRight
   }
 
-  it should "expect white to play next" in {
-    assert(aNewGame.nextMove === white)
+  def nothingElseCanMove = Arbitrary(invalidMoves) {case (from: RankAndFile, to: RankAndFile) =>
+    aNewGame.move(white, from, to) must beLeft
+  }.set(minTestsOk = 4000)
+
+  val pawnMoves = for {
+    from <- Gen.oneOf(A2 to H2)
+    to <- Gen.oneOf(Seq(8, 16).flatMap(from.-))
+  } yield (from, to)
+
+  val knightMoves = for {
+    from <- Gen.oneOf(B1, G1)
+    to <- Gen.oneOf(Seq(15, 17).flatMap(from.-))
+  } yield (from, to)
+
+  val invalidMoves = {
+    def validPawnMove(from: RankAndFile, to: RankAndFile) =
+      from >= A2 && from <= H2 && Seq(8, 16).flatMap(from.-).contains(to)
+    def validKnightMove(from: RankAndFile, to: RankAndFile) =
+      (from == B1 || from == G1) && Seq(15, 17).flatMap(from.-).contains(to)
+    (for {
+      from <- Gen.oneOf(RankAndFile.values.toSeq)
+      to <- Gen.oneOf(RankAndFile.values.toSeq)
+    } yield (from, to)) suchThat { case (from, to) => !(validPawnMove(from, to) || validKnightMove(from, to)) }
   }
-
-  it should "have no en passant target" in {
-    aNewGame.enPassantTarget should be (None)
-  }
-
-  // todo - scalatest matchers are ... Move back to specs2
-  it should "still permit all kinds of castling" in {
-    aNewGame.castling.availabilityFor(White) should (
-      contain (WhiteKingSide: CastlingAvailability) and
-      contain (WhiteQueenSide: CastlingAvailability) and
-      have size 2
-    )
-    aNewGame.castling.availabilityFor(Black) should (
-      contain (BlackKingSide: CastlingAvailability) and
-      contain (BlackQueenSide: CastlingAvailability) and
-      have size 2
-    )
-  }
-
-  it should "allow valid pawn moves" in {
-//    aNewGame.move(white, E2, E4)
-  }
-
-  it should "disallow valid pawn moves" in {}
-
-  it should "allow valid knight moves" in {}
-
-  it should "disallow valid knight moves" in {}
-
-  it should "disallow other pieces to move" in {}
 
 }

@@ -20,9 +20,9 @@ trait RoleMarker
 trait Pawn extends Role {
   val sanRole = 'p'
   def validMoves(rf: RankAndFile, game: Game) = {
-    val depth = (rf.id / 7, forward) match {
+    val depth = (rf.id / 8, forward) match {
       case (1, WhiteSide) => 2
-      case (7, BlackSide) => 2
+      case (6, BlackSide) => 2
       case _ => 1
     }
     val captures: Set[Move] = validCapturingMoves(rf, game)

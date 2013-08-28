@@ -62,5 +62,13 @@ object RankAndFile extends Enumeration {
       seek(Set.empty[Move], rf, depth, directions)
     }
 
+    def +(i: Int) = if (rf.id + i < 0 || rf.id + i >= 64) None else Some(RankAndFile(rf.id + i))
+    def -(i: Int) = this.+(i * -1)
+
+    def to(that: RankAndFile): Seq[RankAndFile] = (rf.id to that.id).map(RankAndFile.apply)
+
+    def onSameFileAs(that: RankAndFile) = f == that.f
+    def onSameRankAs(that: RankAndFile) = r == that.r
+    def onSameDiagonalAs(that: RankAndFile) = math.abs(r - that.r) == math.abs(f - that.f)
   }
 }

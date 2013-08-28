@@ -12,8 +12,10 @@ class CastlingSpec extends Specification with ScalaCheck { def is = s2"""
     contain $onlyKorQ
     contain $asManyKsAsKingSides
     contain $asManyQsAsQueenSides
-    contain $asManyUpperCaseAsWhite
     contain $asManyLowerCaseAsBlack
+    contain $asManyUpperCaseAsWhite
+    show $availabilityForBlack
+    show $availabilityForWhite
 
   An empty castling object must
     have a flag of '-' $emptyFlagIsDash
@@ -40,6 +42,12 @@ class CastlingSpec extends Specification with ScalaCheck { def is = s2"""
 
   def asManyLowerCaseAsBlack = "as many lowercase as black" !
     castlingMust(c => c.flag.count(_.isUpper) == c.permitted.count(_.colour == White))
+
+  def availabilityForBlack = "availability for black" !
+    castlingMust(c => c.availabilityFor(Black) must_== c.permitted.filter(_.colour == Black))
+
+  def availabilityForWhite = "availability for white" !
+    castlingMust(c => c.availabilityFor(White) must_== c.permitted.filter(_.colour == White))
 
   def castlingMust(p: Castling => Result) = prop {(ca: Set[CastlingAvailability]) => p(Castling(ca))}
 
