@@ -70,5 +70,11 @@ object RankAndFile extends Enumeration {
     def onSameFileAs(that: RankAndFile) = f == that.f
     def onSameRankAs(that: RankAndFile) = r == that.r
     def onSameDiagonalAs(that: RankAndFile) = math.abs(r - that.r) == math.abs(f - that.f)
+    def squaresInDirection(direction: BoardSide): Int = {
+      def inner(rf: RankAndFile, count: Int): Int = {
+        (this towards direction).map(next => inner(next, count + 1)).getOrElse(count)
+      }
+      inner(rf, 0)
+    }
   }
 }

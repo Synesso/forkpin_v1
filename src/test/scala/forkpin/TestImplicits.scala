@@ -3,7 +3,7 @@ package forkpin
 import forkpin.RankAndFile._
 import scala.Some
 
-object TestImplicits {
+trait TestImplicits {
 
   implicit class GameWrapper(game: Game) {
     def place(rfPiece: (RankAndFile, Piece)) = {

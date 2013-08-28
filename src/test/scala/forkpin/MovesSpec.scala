@@ -3,9 +3,8 @@ package forkpin
 import forkpin.persist.Persistent.User
 import RankAndFile._
 import org.specs2.Specification
-import TestImplicits._
 
-class MovesSpec extends Specification { def is = s2"""
+class MovesSpec extends Specification with TestImplicits { def is = s2"""
 
   A rook should
     move along its own rank and file only $rook1

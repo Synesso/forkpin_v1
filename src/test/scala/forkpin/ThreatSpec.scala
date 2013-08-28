@@ -9,11 +9,13 @@ import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.{Gen, Arbitrary}
 import org.specs2.execute.Result
 
-class ThreatSpec extends Specification with ScalaCheck { def is = s2"""
+class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
 
   Any square should
     have $noThreatOnEmptyBoard
     be threatened by $queenOnRankFileOrDiagonal
+    not be threatened by $friendlyQueen
+    not be threatened by $blockedQueen
 
 """
 
@@ -27,32 +29,37 @@ class ThreatSpec extends Specification with ScalaCheck { def is = s2"""
     game(enemySquare -> BlackQueen).isThreatenedAt(square) must beEqualTo(threat)
   }
 
+  def friendlyQueen = "a friendly queen at any square" ! prop{(square: RankAndFile, friendlySquare: RankAndFile) =>
+    game(friendlySquare -> WhiteQueen).isThreatenedAt(square) must beFalse
+  }
+
+  def blockedQueen = "a blocked enemy queen" ! prop{(squareAndDirection: (RankAndFile, BoardSide)) =>
+    val (square, direction) = squareAndDirection
+    val freeSquares = square.squaresInDirection(direction)
+    val knightPlacement: Int = (Math.random * (freeSquares - 1)).toInt + 1
+    val enemyPlacement: Int = knightPlacement + (Math.random * (freeSquares - knightPlacement - 1)).toInt + 1
+    val blockedQueenGame = (1 to enemyPlacement).foldLeft((square, game())){case ((rf: RankAndFile, g: Game), i: Int) =>
+      if (i == knightPlacement) (rf.towards(direction).get, g.place(rf, BlackKnight))
+      else if (i == enemyPlacement) (rf.towards(direction).get, g.place(rf, BlackQueen))
+      else (rf.towards(direction).get, g)
+    }._2
+    blockedQueenGame.isThreatenedAt(square) must beFalse
+  }
+
   implicit val arbitrarySquare = Arbitrary(Gen.oneOf(RankAndFile.values.toSeq))
+  implicit val arbitraryDirection = Arbitrary(Gen.oneOf(Seq(BlackSide, WhiteSide, QueenSide, KingSide,
+    BlackSide + KingSide, BlackSide + QueenSide, WhiteSide + QueenSide, WhiteSide + KingSide)))
+  implicit val arbitrarySquareAndDirection = Arbitrary((for {
+    direction <- arbitraryDirection.arbitrary
+    square <- arbitrarySquare.arbitrary
+  } yield (square, direction)).suchThat{case (square, direction) => square.squaresInDirection(direction) >= 2})
+  implicit val piece  = Arbitrary(Gen.oneOf(for {
+    role <- Seq(Pawn, Knight, Bishop, Rook, Queen, King)
+    colour <- Seq(Black, White)
+  } yield colour sided role))
+
 
   /*
-    "any square" should "have no threat on an empty board" in {
-      assert(game().isThreatenedAt(E5) === false)
-    }
-
-    it should "be threatened by a queen on the rank" in {
-      assert(game(E2 -> BlackQueen).isThreatenedAt(E5))
-    }
-
-    it should "be threatened by a queen on the file" in {
-      assert(game(H5 -> BlackQueen).isThreatenedAt(A5))
-    }
-
-    it should "be threatened by a queen on the diagonal" in {
-      assert(game(H5 -> BlackQueen).isThreatenedAt(D1))
-    }
-
-    it should "not be threatened by a queen on the oblique" in {
-      assert(!game(F7 -> BlackQueen).isThreatenedAt(B4))
-    }
-
-    it should "not be threatened by a friendly queen" in {
-      assert(!game(F7 -> WhiteQueen).isThreatenedAt(F2))
-    }
 
     it should "not be threatened by a queen when another enemy piece is in the way" in {
       assert(!game(F1 -> BlackQueen, F3 -> BlackKnight).isThreatenedAt(F5))
