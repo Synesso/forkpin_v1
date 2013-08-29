@@ -26,8 +26,7 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
 
   def queenOnRankFileOrDiagonal = "a queen on the rank, file or diagonal" ! prop {
     (square: RankAndFile, enemySquare: RankAndFile) =>
-    val threat = square != enemySquare &&
-      (square.onSameDiagonalAs(enemySquare) || square.onSameFileAs(enemySquare) || square.onSameRankAs(enemySquare))
+    val threat = square != enemySquare && square.onSameQueenMovementAs(enemySquare)
     game(enemySquare -> BlackQueen).isThreatenedAt(square) must beEqualTo(threat)
   }
 
@@ -35,26 +34,13 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     game(friendlySquare -> WhiteQueen).isThreatenedAt(square) must beFalse
   }
 
-  def blockedQueen = "a blocked enemy queen" ! prop{(squareAndDirection: (RankAndFile, BoardSide)) =>
-/*
-    val (square, direction) = squareAndDirection
-    val freeSquares = square.squaresInDirection(direction)
-    val knightPlacement: Int = (Math.random * (freeSquares - 1)).toInt + 1
-    val enemyPlacement: Int = knightPlacement + (Math.random * (freeSquares - knightPlacement - 1)).toInt + 1
-    val blockedQueenGame = (1 to enemyPlacement).foldLeft((square, game())){case ((rf: RankAndFile, g: Game), i: Int) =>
-      if (i == knightPlacement) (rf.towards(direction).get, g.place(rf, BlackKnight))
-      else if (i == enemyPlacement) (rf.towards(direction).get, g.place(rf, BlackQueen))
-      else (rf.towards(direction).get, g)
-    }._2
-    blockedQueenGame.isThreatenedAt(square) must beFalse
-*/
-    true
+  def blockedQueen = "a blocked enemy queen" ! prop{(squaresTriple: (RankAndFile, RankAndFile, RankAndFile)) =>
+    val squares = Seq(squaresTriple._1, squaresTriple._2, squaresTriple._3).sorted
+    val blockedQueenGame = game().place(squares(1), BlackKnight).place(squares(2), BlackQueen)
+    blockedQueenGame.isThreatenedAt(squares(0)) must beFalse
   }
 
   val squares: Gen[RankAndFile.Value] = Gen.oneOf(RankAndFile.values.toSeq)
-
-  val directions: Gen[BoardSide] = Gen.oneOf(Seq(BlackSide, WhiteSide, QueenSide, KingSide,
-    BlackSide + KingSide, BlackSide + QueenSide, WhiteSide + QueenSide, WhiteSide + KingSide))
 
   val pieces: Gen[Piece] = Gen.oneOf(for {
     role <- Seq(Pawn, Knight, Bishop, Rook, Queen, King)
@@ -62,14 +48,13 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
   } yield colour sided role)
 
   implicit val arbitrarySquare = Arbitrary(squares)
-  implicit val arbitraryDirection = Arbitrary(directions)
   implicit val arbitraryPiece = Arbitrary(pieces)
-/*
-  implicit val arbitrarySquareAndDirection = Arbitrary(for {
-    square <- squares
-    direction <- directions suchThat (d => square.squaresInDirection(d) >= 2)
-  } yield (square, direction))
-*/
+
+  implicit val arbitrarySquareTriple = Arbitrary(for {
+    square1 <- squares
+    square2 <- Gen.oneOf((RankAndFile.lines(square1.onSameQueenMovementAs) - square1).toSeq)
+    square3 <- Gen.oneOf((square1.lineOf(square2) - square1 - square2).toSeq)
+  } yield (square1, square2, square3))
 
 
   /*

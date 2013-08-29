@@ -15,6 +15,8 @@ object RankAndFile extends Enumeration {
     def unapply[T](s: Seq[T]) = s.headOption.map(head => (head, s.tail))
   }
 
+  def lines(p: (RankAndFile) => Boolean) = RankAndFile.values.filter(p)
+
   implicit class RankAndFileWrapper(rf: RankAndFile) {
 
     lazy val (r, f) = (rf.id / 8, rf.id % 8)
@@ -69,7 +71,19 @@ object RankAndFile extends Enumeration {
 
     def onSameFileAs(that: RankAndFile) = f == that.f
     def onSameRankAs(that: RankAndFile) = r == that.r
-    def onSameDiagonalAs(that: RankAndFile) = math.abs(r - that.r) == math.abs(f - that.f)
+    def onSameBackSlashDiagonalAs(that: RankAndFile) = r - that.r == that.f - f
+    def onSameForwardSlashDiagonalAs(that: RankAndFile) = r - that.r == f - that.f
+    def onSameBishopMovementAs(that: RankAndFile) = onSameBackSlashDiagonalAs(that) || onSameForwardSlashDiagonalAs(that)
+    def onSameRookMovementAs(that: RankAndFile) = onSameFileAs(that) || onSameRankAs(that)
+    def onSameQueenMovementAs(that: RankAndFile) = onSameBishopMovementAs(that) || onSameRookMovementAs(that)
+    def onSameLineAs(that: RankAndFile, other: RankAndFile) = {
+      val both = Seq(that, other)
+      both.forall(onSameFileAs) ||
+      both.forall(onSameRankAs) ||
+      both.forall(onSameBackSlashDiagonalAs) ||
+      both.forall(onSameForwardSlashDiagonalAs)
+    }
+    def lineOf(that: RankAndFile) = RankAndFile.values.filter(onSameLineAs(that, _))
     def squaresInDirection(direction: BoardSide): Int = {
       def inner(rf: RankAndFile, count: Int): Int = {
         (rf towards direction).map(next => inner(next, count + 1)).getOrElse(count)
