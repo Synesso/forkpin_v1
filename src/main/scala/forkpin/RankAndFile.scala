@@ -90,5 +90,9 @@ object RankAndFile extends Enumeration {
       }
       inner(rf, 0)
     }
+
+    lazy val surroundingSquares = (for (r <- Seq(-1, 0, 1); f <- Seq(-1, 0, 1)) yield (rf.r + r, rf.f + f)).filter{
+      case (rank, file) => rank >= 0 && rank <= 7 && file >= 0 && file <= 7 && (rank != rf.r || file != rf.f)
+    }.map{case (rank, file) => RankAndFile(rank * 8 + file)}
   }
 }

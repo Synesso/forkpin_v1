@@ -11,42 +11,63 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
 
   Any square should
     have $noThreatOnEmptyBoard
-    be threatened by $queenOnRankFileOrDiagonal
-    not be threatened by $friendlyQueen
-    not be threatened by $blockedQueen
+
+  A queen should
+    threaten on the rank, file or diagonal $queenOnRankFileOrDiagonal
+    not threatened when blocked $blockedQueen
+
+  A king should
+    threated on the adjacent square $kingOnTheNextSquare
+    not threaten on a non-adjacent square $kingOnANonAdjacentSquare
+
+  A friendly piece should
+    never threaten $friendlyPieces
+
 
 """
-
-  // todo - more work required
 
   def noThreatOnEmptyBoard = "no threat on an empty board" ! prop {(square: RankAndFile) =>
     emptyGame.isThreatenedAt(square) must beFalse
   }
 
-  def queenOnRankFileOrDiagonal = "a queen on the rank, file or diagonal" ! prop {
+  def queenOnRankFileOrDiagonal = prop {
     (square: RankAndFile, enemySquare: RankAndFile) =>
     val threat = square != enemySquare && square.onSameQueenMovementAs(enemySquare)
     game(enemySquare -> BlackQueen).isThreatenedAt(square) must beEqualTo(threat)
   }
 
-  def friendlyQueen = "a friendly queen at any square" ! prop{(square: RankAndFile, friendlySquare: RankAndFile) =>
-    game(friendlySquare -> WhiteQueen).isThreatenedAt(square) must beFalse
+  def friendlyPieces = prop{
+    (square: RankAndFile, friendlySquare: RankAndFile, role: RoleMarker) =>
+      game(friendlySquare -> White.sided(role)).isThreatenedAt(square) must beFalse
   }
 
-  def blockedQueen = "a blocked enemy queen" ! prop{(squaresTriple: (RankAndFile, RankAndFile, RankAndFile)) =>
+  def blockedQueen = prop{(squaresTriple: (RankAndFile, RankAndFile, RankAndFile)) =>
     val squares = Seq(squaresTriple._1, squaresTriple._2, squaresTriple._3).sorted
     val blockedQueenGame = game().place(squares(1), BlackKnight).place(squares(2), BlackQueen)
     blockedQueenGame.isThreatenedAt(squares(0)) must beFalse
   }
 
-  val squares: Gen[RankAndFile.Value] = Gen.oneOf(RankAndFile.values.toSeq)
+  def kingOnTheNextSquare = arbitraryAdjacentSquares{
+    case (first: RankAndFile, second: RankAndFile) =>
+      game(first -> BlackKing).isThreatenedAt(second) must beTrue
+  }
 
-  val pieces: Gen[Piece] = Gen.oneOf(for {
-    role <- Seq(Pawn, Knight, Bishop, Rook, Queen, King)
-    colour <- Seq(Black, White)
-  } yield colour sided role)
+  def kingOnANonAdjacentSquare = arbitraryNonAdjacentSquares{
+    case (first: RankAndFile, second: RankAndFile) =>
+      game(first -> BlackKing).isThreatenedAt(second) must beFalse
+  }
+
+  val squares = Gen.oneOf(RankAndFile.values.toSeq)
+
+  val roles = Gen.oneOf(Seq(Pawn, Knight, Bishop, Rook, Queen, King))
+
+  val pieces = for {
+    role <- roles
+    colour <- Gen.oneOf(Seq(Black, White))
+  } yield colour sided role
 
   implicit val arbitrarySquare = Arbitrary(squares)
+  implicit val arbitraryRole = Arbitrary(roles)
   implicit val arbitraryPiece = Arbitrary(pieces)
 
   implicit val arbitrarySquareTriple = Arbitrary(for {
@@ -55,40 +76,17 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     square3 <- Gen.oneOf((square1.lineOf(square2) - square1 - square2).toSeq)
   } yield (square1, square2, square3))
 
+  val arbitraryAdjacentSquares = Arbitrary(for {
+    first <- squares
+    second <- Gen.oneOf(first.surroundingSquares)
+  } yield (first, second))
+
+  val arbitraryNonAdjacentSquares = Arbitrary(for {
+    first <- squares
+    second <- Gen.oneOf((RankAndFile.values -- first.surroundingSquares - first).toSeq)
+  } yield (first, second))
 
   /*
-
-    it should "not be threatened by a queen when another enemy piece is in the way" in {
-      assert(!game(F1 -> BlackQueen, F3 -> BlackKnight).isThreatenedAt(F5))
-    }
-
-    it should "not be threatened by a queen when another friendly piece is in the way" in {
-      assert(!game(F1 -> BlackQueen, F3 -> WhitePawn).isThreatenedAt(F5))
-    }
-
-    it should "be threatened by a king in the next square along diagonal" in {
-      assert(game(A8 -> BlackKing).isThreatenedAt(B7))
-    }
-
-    it should "be threatened by a king in the next square along rank" in {
-      assert(game(A8 -> BlackKing).isThreatenedAt(A7))
-    }
-
-    it should "be threatened by a king in the next square along file" in {
-      assert(game(A8 -> BlackKing).isThreatenedAt(B8))
-    }
-
-    it should "not be threatened by a king two squares along file" in {
-      assert(!game(A8 -> BlackKing).isThreatenedAt(C8))
-    }
-
-    it should "not be threatened by a king two squares along rank" in {
-      assert(!game(A8 -> BlackKing).isThreatenedAt(A6))
-    }
-
-    it should "not be threatened by a king two squares along diagonal" in {
-      assert(!game(A8 -> BlackKing).isThreatenedAt(C6))
-    }
 
     it should "not be threatened by a friendly king" in {
       assert(!game(D7 -> WhiteKing).isThreatenedAt(C6))
