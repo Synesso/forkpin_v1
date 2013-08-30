@@ -1,15 +1,32 @@
 package forkpin
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
-import RankAndFile._
+import org.specs2.{ScalaCheck, Specification}
+import org.scalacheck.{Gen, Arbitrary}
+import org.scalacheck.Gen._
+import org.specs2.mock.Mockito
+import forkpin.persist.Persistent.User
+import org.specs2.execute.Result
 
-class SerialisationSpec extends FlatSpec with ShouldMatchers {
 
-  val moves = Vector(Move(E2, E4), Move(E7, E5), Move(B1, C3))
+class SerialisationSpec extends Specification with ScalaCheck with Mockito { def is = s2"""
 
-  "a list of moves" should "serialise correctly" in {
-    assert(Game(1, null, null, null, moves = moves).pickledMoves === "E2E4E7E5B1C3")
+  A list of moves should
+    have $lengthMultipleOf4
+
+
+"""
+
+  // todo - more work required
+
+  def lengthMultipleOf4 = pickledArbitraryMoves(_.length % 4 must beEqualTo(0))
+
+  val moves = (for {from <- RankAndFile.values; to <- RankAndFile.values} yield Move(from, to)).toSeq
+  implicit val arbitraryMoveList = Arbitrary(listOf(Gen.oneOf(moves)))
+
+  def pickledArbitraryMoves(p: (String) => Result) = prop{(moves: List[Move]) =>
+    val game = Game(1, white, black).copy(moves = moves.toVector)
+    p(game.pickledMoves)
   }
 
+  val white, black = mock[User]
 }

@@ -1,13 +1,10 @@
 package forkpin
 
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.FlatSpec
 import RankAndFile._
 import forkpin.persist.Persistent
 import Persistent.User
 import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.{Gen, Arbitrary}
-import org.specs2.execute.Result
 import org.specs2.mock.Mockito
 
 class ThreatSpec extends Specification with ScalaCheck with TestImplicits with Mockito { def is = s2"""
@@ -19,6 +16,8 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     not be threatened by $blockedQueen
 
 """
+
+  // todo - more work required
 
   def noThreatOnEmptyBoard = "no threat on an empty board" ! prop {(square: RankAndFile) =>
     emptyGame.isThreatenedAt(square) must beFalse
