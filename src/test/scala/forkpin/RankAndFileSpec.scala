@@ -48,6 +48,24 @@ class RankAndFileSpec extends Specification { def is = s2"""
     calculate how many squares are whitequeenside $edge26
     calculate how many squares are whitekingside $edge27
 
+  two squares on the backslash diagonal should
+    report that they are on the backslash $backslash1
+    report that they are not on the forwardslash $backslash2
+    report that they are not on the file $backslash3
+    report that they are not on the rank $backslash4
+    report that they are not on the rook lines $backslash5
+    report that they are on the bishop lines $backslash6
+    report that they are on the queen lines $backslash7
+
+  two squares on the forwardslash diagonal should
+    report that they are not on the backslash $forwardslash1
+    report that they are on the forwardslash $forwardslash2
+    report that they are not on the file $forwardslash3
+    report that they are not on the rank $forwardslash4
+    report that they are not on the rook lines $forwardslash5
+    report that they are on the bishop lines $forwardslash6
+    report that they are on the queen lines $forwardslash7
+
 
   """
 
@@ -90,5 +108,21 @@ class RankAndFileSpec extends Specification { def is = s2"""
   def edge25 = H8 squaresInDirection BlackSide + KingSide must beEqualTo(0)
   def edge26 = H8 squaresInDirection WhiteSide + QueenSide must beEqualTo(7)
   def edge27 = H8 squaresInDirection WhiteSide + KingSide must beEqualTo(0)
+
+  def backslash1 = F4 onSameBackSlashDiagonalAs C7 must beTrue
+  def backslash2 = F4 onSameForwardSlashDiagonalAs C7 must beFalse
+  def backslash3 = F4 onSameRankAs C7 must beFalse
+  def backslash4 = F4 onSameFileAs C7 must beFalse
+  def backslash5 = F4 onSameRookMovementAs C7 must beFalse
+  def backslash6 = F4 onSameBishopMovementAs C7 must beTrue
+  def backslash7 = F4 onSameQueenMovementAs C7 must beTrue
+
+  def forwardslash1 = C1 onSameBackSlashDiagonalAs H6 must beFalse
+  def forwardslash2 = C1 onSameForwardSlashDiagonalAs H6 must beTrue
+  def forwardslash3 = C1 onSameFileAs H6 must beFalse
+  def forwardslash4 = C1 onSameRankAs H6 must beFalse
+  def forwardslash5 = C1 onSameRookMovementAs H6 must beFalse
+  def forwardslash6 = C1 onSameBishopMovementAs H6 must beTrue
+  def forwardslash7 = C1 onSameQueenMovementAs H6 must beTrue
 
 }

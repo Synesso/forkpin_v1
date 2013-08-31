@@ -71,8 +71,8 @@ object RankAndFile extends Enumeration {
 
     def onSameFileAs(that: RankAndFile) = f == that.f
     def onSameRankAs(that: RankAndFile) = r == that.r
-    def onSameBackSlashDiagonalAs(that: RankAndFile) = r - that.r == that.f - f
-    def onSameForwardSlashDiagonalAs(that: RankAndFile) = r - that.r == f - that.f
+    def onSameForwardSlashDiagonalAs(that: RankAndFile) = r - that.r == that.f - f
+    def onSameBackSlashDiagonalAs(that: RankAndFile) = r - that.r == f - that.f
     def onSameBishopMovementAs(that: RankAndFile) = onSameBackSlashDiagonalAs(that) || onSameForwardSlashDiagonalAs(that)
     def onSameRookMovementAs(that: RankAndFile) = onSameFileAs(that) || onSameRankAs(that)
     def onSameQueenMovementAs(that: RankAndFile) = onSameBishopMovementAs(that) || onSameRookMovementAs(that)

@@ -11,6 +11,12 @@ abstract class BoardSide(val offsetRank: Int = 0, val offsetFile: Int = 0) {
   def +(side: BoardSide) = new BoardSide(
     offsetRank = BoardSide.this.offsetRank + side.offsetRank,
     offsetFile = BoardSide.this.offsetFile + side.offsetFile){}
+
+  def adjacent: Set[BoardSide] = this match {
+    case QueenSide | KingSide => Set(BlackSide, WhiteSide)
+    case WhiteSide | BlackSide => Set(KingSide, QueenSide)
+    case _ => Set.empty
+  }
 }
 
 case object QueenSide extends BoardSide(offsetFile = -1)
