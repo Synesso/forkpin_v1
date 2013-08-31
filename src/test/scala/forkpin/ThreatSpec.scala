@@ -32,6 +32,9 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     threaten on the dogleg $knightOnDogleg
     threaten even when square is protected $blockedKnight
 
+  A pawn should
+    threaten diagonally forward $pawnThreat
+
   A friendly piece should
     never threaten $friendlyPieces
 
@@ -100,6 +103,13 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
       g.place(rf -> WhitePawn)
     }
     thisGame.isThreatenedAt(threatened) must beTrue
+  }
+
+  def pawnThreat = prop {(square: RankAndFile) =>
+    val threatened = Set(square.towards(WhiteSide + QueenSide), square.towards(WhiteSide + KingSide)).flatten
+    RankAndFile.values must contain{(rf: RankAndFile) =>
+      game(square -> BlackPawn).isThreatenedAt(rf) must beEqualTo(threatened contains rf)
+    }.forall
   }
 
   val squares = Gen.oneOf(RankAndFile.values.toSeq)
