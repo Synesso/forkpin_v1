@@ -1,3 +1,3 @@
-# Getting Started with Scala on Heroku/Cedar
+# ForkPin
 
-See http://devcenter.heroku.com/articles/scala
+[![Build Status](https://api.travis-ci.org/Synesso/forkpin.png)](https://travis-ci.org/Synesso/forkpin)
