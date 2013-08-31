@@ -95,7 +95,12 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     game(attacker -> BlackKnight).isThreatenedAt(threatened) must beTrue
   }
 
-  def blockedKnight = pending
+  def blockedKnight = arbitraryKnightAttackSquares{case (attacker: RankAndFile, threatened: RankAndFile) =>
+    val thisGame = threatened.surroundingSquares.foldLeft(game(attacker -> BlackKnight)){(g: Game, rf: RankAndFile) =>
+      g.place(rf -> WhitePawn)
+    }
+    thisGame.isThreatenedAt(threatened) must beTrue
+  }
 
   val squares = Gen.oneOf(RankAndFile.values.toSeq)
   val roles = Gen.oneOf(Seq(Pawn, Knight, Bishop, Rook, Queen, King))
