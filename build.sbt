@@ -14,7 +14,7 @@ classpathTypes ~= (_ + "orbit")
 
 libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "1.0.1",
-  "com.novus" %% "salat-core" % "1.9.2",
+  "com.novus" %% "salat-core" % "1.9.2" exclude("org.scala-lang", "scalap"),
   "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" %% "scalatra" % "2.2.1",
   "org.scalatra" %% "scalatra-scalate" % "2.2.1",
@@ -48,3 +48,5 @@ ivyScala ~= { (is: Option[IvyScala]) =>
 scalacOptions in Test ++= Seq("-Yrangepos")
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+filterScalaLibrary := false
