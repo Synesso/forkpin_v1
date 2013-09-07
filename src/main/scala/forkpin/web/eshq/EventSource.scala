@@ -14,7 +14,7 @@ object EventSource extends Config {
 
   def createSocket(channel: String) = post("/socket", Map("channel" -> channel))
 
-  def publish(data: String, channel: String) = post("/event", Map("channel" -> channel, "data" -> data))
+  def publish(channel: String, data: String) = post("/event", Map("channel" -> channel, "data" -> data))
 
   private def post(path: String, params: Map[String, String]): ActionResult = {
     val request = url(s"$serviceURL$path") << params << credentials
@@ -29,7 +29,7 @@ object EventSource extends Config {
     Map("key" -> key, "timestamp" -> time, "token" -> token(key, secret, time))
   }
 
-  private def token(strings: String*) = {
+  def token(strings: String*) = {
     val md = java.security.MessageDigest.getInstance("SHA-1")
     md.digest(strings.mkString(":").getBytes("UTF-8")).map("%02x".format(_)).mkString
   }
