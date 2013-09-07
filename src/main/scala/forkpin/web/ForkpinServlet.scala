@@ -36,7 +36,7 @@ abstract class ForkpinServlet extends ScalatraServlet with ScalateSupport with J
     jsonResponse(token.map{t => result(Token(s"$t"))}.getOrElse(orElse))
   }
 
-  private def jsonResponse(result: => ActionResult) = {
+  def jsonResponse(result: => ActionResult) = {
     contentType = formats("json")
     result
   }
