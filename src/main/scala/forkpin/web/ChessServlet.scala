@@ -7,6 +7,7 @@ import java.security.SecureRandom
 import org.scalatra._
 import forkpin.web.gplus._
 import forkpin.persist.Persistent
+import com.github.synesso.eshq.Channel
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
 
@@ -79,13 +80,23 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     }
   }
 
+  get("/games") {
+    authorisedJsonResponse {token =>
+      val games = Persistent.games(user)
+      Ok(reason = s"Retrieved games for $user", body = games.map(_.forClient))
+    }
+  }
+
   post("/move") {
     authorisedJsonResponse {token =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
         game.move(user, from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove.forClient),
-          (updatedGame) => Ok(updatedGame.forClient)
+          (updatedGame) => {
+            eventSourceClient.sendJson(Channel(gameId), updatedGame.forClient)
+            Ok(updatedGame.forClient)
+          }
         )
       }.getOrElse(Forbidden(reason = "Invalid gameId", body = gameId))
     }

@@ -8,6 +8,8 @@ import forkpin.persist.Persistent
 import Persistent.User
 import forkpin.Config
 import gplus.Token
+import com.github.synesso.eshq.{Secret, Key, EventSourceClient}
+import java.net.URL
 
 abstract class ForkpinServlet extends ScalatraServlet with ScalateSupport with JacksonJsonSupport with Config {
   protected implicit val jsonFormats: Formats = DefaultFormats
@@ -41,5 +43,9 @@ abstract class ForkpinServlet extends ScalatraServlet with ScalateSupport with J
     result
   }
 
+  lazy val eventSourceClient = {
+    val (key, secret, serviceURL) = (properties("ESHQ_KEY"), properties("ESHQ_SECRET"), properties("ESHQ_URL"))
+    EventSourceClient(Key(key), Secret(secret), new URL(serviceURL))
+  }
 
 }

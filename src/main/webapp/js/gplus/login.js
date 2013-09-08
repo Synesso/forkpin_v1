@@ -35,6 +35,7 @@ var loginMod = (function () {
             console.log('authResult', authResult);
         },
 
+        // todo - this should be where game data is retrieved and displayed
         renderProfile: function () {
             var request = gapi.client.plus.people.get({'userId': 'me'});
             request.execute(function (profile) {

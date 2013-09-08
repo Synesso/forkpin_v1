@@ -9,7 +9,13 @@
 
         // called when a new message with no specific type has been received
         eshq.onmessage = function(e) {
-            console.log("Message", e);
+            var gameData = JSON.parse(e.data);
+            console.log("game update", gameData);
+            // todo - replace below with gameControls.update(game);
+            var game = gameControls.games[gameData.id];
+            game.load(gameData.fen());
+            gameControls.focus.board.position(gameData.fen());
+            gameControls.games[gameData.id] = {meta: gameData, game: game};
         };
 
         // callback called on error

@@ -96,11 +96,15 @@ object Persistent extends Config {
     }
   }
 
+  def games(user: User): Seq[Game] = database withSession {
+    val gameRows = Query(Games).filter{g => g.blackId === user.gPlusId || g.whiteId === user.gPlusId}
+    gameRows.to[Vector].map(Game.buildFrom)
+  }
+
   def game(id: Int): Option[Game] = database withSession {
     val gameRow = Query(Games).filter(_.id === id).firstOption
     gameRow.map(Game.buildFrom)
   }
-
 
   def now = new Timestamp(System.currentTimeMillis)
 

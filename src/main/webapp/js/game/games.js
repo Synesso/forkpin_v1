@@ -2,13 +2,28 @@ var gameControls = (function () {
 
     return {
 
-        games: {}, // gameId -> {meta: json, game: Chess}
+
+
+        games: {}, // gameId -> {id, board, chessJsGame: Chess}
 
         focus: {
             gameId: undefined,
             board: undefined,
             game: undefined,
             validDestinations: []
+        },
+
+        loadGamesForUser: function () {
+            $.ajax({
+                type: 'GET',
+                url: window.location.origin + '/games',
+                success: function (games) {
+                    console.log('games loaded', games);
+                },
+                error: function (e) {
+                    console.log('error loading games', e.error);
+                }
+            })
         },
 
         issueChallenge: function () {
@@ -24,7 +39,7 @@ var gameControls = (function () {
                     }
                 },
                 error: function (e) {
-                    console.log('error issuing challenge', e);
+                    console.log('error issuing challenge', e.error);
                 }
             })
         },
