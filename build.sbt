@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "com.google.apis" % "google-api-services-plus" % "v1-rev62-1.14.1-beta",
   "com.google.apis" % "google-api-services-oauth2" % "v1-rev33-1.14.1-beta",
   "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta",
-  "com.github.synesso" %% "eshq" % "0.1-SNAPSHOT",
+  "com.github.synesso" %% "eshq" % "0.1",
   "org.specs2" %% "specs2" % "2.2" % "test",
   "org.scalacheck" %% "scalacheck" % "1.10.0" % "test"
 )
