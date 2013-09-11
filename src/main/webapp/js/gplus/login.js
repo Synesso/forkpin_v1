@@ -47,6 +47,7 @@ var loginMod = (function () {
                     return;
                 }
                 loginMod.connectServer(profile.id);
+                gameControls.loadGamesForUser();
                 divs.userName.append(profile.displayName);
                 divs.selfPanel.append('<img src="' + profile.image.url + '" class="img-circle"/>');
                 $('#gConnect').hide();

@@ -94,7 +94,8 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
         game.move(user, from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove.forClient),
           (updatedGame) => {
-            eventSourceClient.sendJson(Channel(gameId), updatedGame.forClient)
+            Persistent.updateGame(updatedGame)
+            eventSourceClient.sendJson(Channel(s"forkpin-game-$gameId"), updatedGame.forClient)
             Ok(updatedGame.forClient)
           }
         )

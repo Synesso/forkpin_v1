@@ -14,6 +14,10 @@ object Persistent extends Config {
   case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
   case class User(gPlusId: String, firstSeen: Timestamp)
   case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
+  object GameRow {
+    def buildFrom(game: Game) = GameRow(Some(game.id), game.white.gPlusId, game.black.gPlusId,
+      game.moves.map(m => s"${m.from}${m.to}").mkString)
+  }
 
   object Users extends Table[User]("users") {
     def gPlusId = column[String]("gplus_id", O.PrimaryKey)
@@ -26,7 +30,7 @@ object Persistent extends Config {
     def whiteId = column[String]("white_id")
     def blackId = column[String]("black_id")
     def moves = column[String]("moves")
-    def * = id.? ~ whiteId ~ blackId ~ moves <> (GameRow, GameRow.unapply _)
+    def * = id.? ~ whiteId ~ blackId ~ moves <> (GameRow.apply _, GameRow.unapply _)
     def white = foreignKey("white_fk", whiteId, Users)(_.gPlusId)
     def black = foreignKey("black_fk", blackId, Users)(_.gPlusId)
     def forInsert = whiteId ~ blackId ~ moves <> (
@@ -72,6 +76,10 @@ object Persistent extends Config {
         }
       }
       ddl.foreach{_.create}
+      Users.insert(User("100", now))
+      (1 to 10).foreach { _ =>
+        Challenges.forInsert insert Challenge(None, "100", None, now)
+      }
     }
   }
 
@@ -104,6 +112,12 @@ object Persistent extends Config {
   def game(id: Int): Option[Game] = database withSession {
     val gameRow = Query(Games).filter(_.id === id).firstOption
     gameRow.map(Game.buildFrom)
+  }
+
+  def updateGame(game: Game) = database withSession {
+    val gameRow = GameRow.buildFrom(game)
+    val query = for { g <- Games if g.id === game.id } yield g.moves
+    query.update(gameRow.moves)
   }
 
   def now = new Timestamp(System.currentTimeMillis)
