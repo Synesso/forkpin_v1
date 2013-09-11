@@ -4,7 +4,7 @@ import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.execute.Result
 
-class CastlingSpec extends Specification with ScalaCheck { def is = s2"""
+class CastlingAvailabilitySpec extends Specification with ScalaCheck { def is = s2"""
 
   A non-empty castling object must
     have a flag which is $alphabeticallySorted
@@ -19,6 +19,7 @@ class CastlingSpec extends Specification with ScalaCheck { def is = s2"""
 
   An empty castling object must
     have a flag of '-' $emptyFlagIsDash
+
 """
 
   implicit val caSet = Arbitrary(Gen.containerOf1[Set, CastlingAvailability](
