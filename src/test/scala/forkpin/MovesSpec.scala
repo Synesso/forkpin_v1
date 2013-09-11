@@ -4,7 +4,9 @@ import forkpin.persist.Persistent.User
 import RankAndFile._
 import org.specs2.Specification
 
-class MovesSpec extends Specification with TestImplicits { def is = s2"""
+class MovesSpec extends Specification with TestImplicits {
+
+  def is = s2"""
 
   A rook should
     move along its own rank and file only $rook1
@@ -28,10 +30,19 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
     include and stop at enemy pieces $king2
     exclude and stop at friendly pieces $king3
     castle when permitted $castleOk
-    not castle kingside when already moved $castleKingSideDeniedAlreadyMoved
-    not castle kingside when piece is in the way $castleKingSideDeniedIntermediatePiece
-    not castle queenside when already moved $castleQueenSideDeniedAlreadyMoved
-    not castle queenside when piece is in the way $castleQueenSideDeniedIntermediatePiece
+    not castle king side when already moved $castleKingSideDeniedAlreadyMoved
+    not castle king side when piece is in the way $castleKingSideDeniedIntermediatePiece
+    not castle king side when king is under threat $castleKingSideDeniedWhenKingUnderThreat
+    not castle king side when king is passing through threat $castleKingSideDeniedWhenKingPassingThroughThreat
+    not castle king side when king is moving into threat $castleKingSideDeniedWhenKingMovingIntoThreat
+    castle king side when rook is under threat $castleKingSideOkWhenRookIsUnderThreat
+    not castle queen side when already moved $castleQueenSideDeniedAlreadyMoved
+    not castle queen side when piece is in the way $castleQueenSideDeniedIntermediatePiece
+    not castle queen side when king is under threat $castleQueenSideDeniedWhenKingUnderThreat
+    not castle queen side when king is passing through threat $castleQueenSideDeniedWhenKingPassingThroughThreat
+    not castle queen side when king is moving into threat $castleQueenSideDeniedWhenKingMovingIntoThreat
+    castle queen side when rook is under threat $castleQueenSideOkWhenRookIsUnderThreat
+    castle queen side when rook passes through threat $castleQueenSideOkWhenRookPassesThroughThreat
 
   A white pawn should
     move forward 1 or 2 squares from 2nd rank $whitePawnFirstMove
@@ -64,7 +75,7 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
   ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
     arr.updated(next._1.id, Some(next._2))
   }))
-
+  
   def rook1 = WhiteRook.validMoves(D6, emptyGame).map(_.to) must containTheSameElementsAs(
     Seq(D1, D2, D3, D4, D5, D7, D8, A6, B6, C6, E6, F6, G6, H6))
 
@@ -179,4 +190,32 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
 
   def blackPawnBlockedCanStillTake = BlackPawn.validMoves(C7, emptyGame.place(C6 -> BlackPawn).place(B6 -> WhiteRook))
     .map(_.to) must containTheSameElementsAs(Seq(B6))
+
+  def castleKingSideDeniedWhenKingUnderThreat =
+    WhiteKing.validMoves(E1, castleGame.place(E8 -> BlackRook)).map(_.to) must not contain G1
+
+  def castleKingSideDeniedWhenKingPassingThroughThreat =
+    WhiteKing.validMoves(E1, castleGame.place(F8 -> BlackRook)).map(_.to) must not contain G1
+
+  def castleKingSideDeniedWhenKingMovingIntoThreat =
+    WhiteKing.validMoves(E1, castleGame.place(G8 -> BlackRook)).map(_.to) must not contain G1
+
+  def castleKingSideOkWhenRookIsUnderThreat =
+    WhiteKing.validMoves(E1, castleGame.place(H8 -> BlackRook)).map(_.to) must contain(G1)
+
+  def castleQueenSideDeniedWhenKingUnderThreat =
+    WhiteKing.validMoves(E1, castleGame.place(E8 -> BlackRook)).map(_.to) must not contain C1
+
+  def castleQueenSideDeniedWhenKingPassingThroughThreat =
+    WhiteKing.validMoves(E1, castleGame.place(D8 -> BlackRook)).map(_.to) must not contain C1
+
+  def castleQueenSideDeniedWhenKingMovingIntoThreat =
+    WhiteKing.validMoves(E1, castleGame.place(C8 -> BlackRook)).map(_.to) must not contain C1
+
+  def castleQueenSideOkWhenRookPassesThroughThreat =
+    WhiteKing.validMoves(E1, castleGame.place(B8 -> BlackRook)).map(_.to) must contain(C1)
+
+  def castleQueenSideOkWhenRookIsUnderThreat =
+    WhiteKing.validMoves(E1, castleGame.place(A8 -> BlackRook)).map(_.to) must contain(C1)
+
 }
