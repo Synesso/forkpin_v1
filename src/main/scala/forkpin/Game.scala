@@ -70,7 +70,7 @@ case class Game(id: Int, white: User, black: User,
     "white" -> white.gPlusId,
     "black" -> black.gPlusId,
     "fen" -> fen,
-    "activeColour" -> activeColour,
+    "activeColour" -> s"$activeColour",
     "moves" -> moves.map(_.forClient).toList)
 }
 

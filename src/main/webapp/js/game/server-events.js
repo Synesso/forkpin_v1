@@ -10,7 +10,7 @@ var ServerEvents = function (game) {
     // called when a new message with no specific type has been received
     eshq.onmessage = function (e) {
         var gameData = JSON.parse(e.data);
-        console.log("game update", game, gameData);
+        console.log("game update", gameData);
         game.update(gameData);
     };
 

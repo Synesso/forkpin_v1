@@ -1,32 +1,26 @@
-var gameControls = (function () {
+var chessboard = (function() {
+
+    var config = {
+        draggable: true,
+        snapbackSpeed: 'fast',
+        showErrors: 'true'
+    };
+
+    var board = new ChessBoard('chessboard', config);
 
     return {
 
-        games: {}, // gameId -> Game
+        focus: game,
 
-        board: new ChessBoard('chessboard', {
-            draggable: true,
-            snapbackSpeed: 'fast',
-            game: undefined,
-            validMovesForPiece: [],
-
-            focusOn: function(game) {
-                this.game = game;
-                this.position(game.fen);
-            },
-
-            onDragStart: function (source) {
-                if (!this.game.playerUp) return false;
-                var moves = this.game.moves({square: source});
-                var toCoordinates = function (s) {
-                    return s.substring(s.length - 2);
-                };
-                this.validMovesForPiece = $.map(moves, toCoordinates);
-                return this.validMovesForPiece.length > 0;
-            },
-
-            onDrop: function (from, to) {
-                var result = this.game.move({from: from, to: to});
+        focusOn: function(game) {
+            this.focus = game;
+            board.position(game.san());
+            config.onDragStart = function(source) {
+                config.validMovesForPiece = game.validMovesFrom(source);
+                return config.validMovesForPiece.length > 0;
+            };
+            config.onDrop = function(from, to) {
+                var result = game.move({from: from, to: to});
                 if (result != null) {
                     $.ajax({
                         type: 'POST',
@@ -36,24 +30,35 @@ var gameControls = (function () {
                             console.log('ok posting move', result);
                         },
                         error: function (e) {
-                            console.log('error posting move', e);
+                            // todo - here the client has moved, but server doesn't know. rollback/report.
+                            console.log('error posting move', e.responseText);
                         },
-                        data: {gameId: this.game.id, from: from.toUpperCase(), to: to.toUpperCase()}
+                        data: {gameId: game.id, from: from.toUpperCase(), to: to.toUpperCase()}
                     });
                     return false;
                 }
                 return 'snapback';
-            },
+            };
+            // todo - onSnapEnd is required to sync the board to the game state where move has side-effects.
+        },
 
-            onSnapEnd: function () {
-                if (this.fen() !== this.game.san()) {
-                    this.position(this.game.san());
+        update: function(game) {
+            if (game.id === this.focus.id) {
+                var fen = game.fen;
+                var san = fen.substring(0, fen.indexOf(' '));
+                if (board.fen() !== san) {
+                    board.position(san);
                 }
-            },
+            }
+        }
 
-            showErrors: 'true'
-        }),
+    }
 
+})();
+
+
+var gameControls = (function () {
+    return {
         loadGamesForUser: function () {
             $.ajax({
                 type: 'GET',
@@ -61,63 +66,76 @@ var gameControls = (function () {
                 success: function (games) {
                     console.log("Games for current user:", games);
                     if (games.length > 0) {
-                        var game = new Game(games[0]);
-                        gameControls.games[game.id] = game;
+                        chessboard.focusOn(game(games[0]));
                     }
                 },
                 error: function (e) {
                     console.log('error loading games', e);
                 }
             })
-        },
-
-        issueChallenge: function () {
-            $.ajax({
-                type: 'POST',
-                url: window.location.origin + '/challenge',
-                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
-                success: function (result) {
-                    if (result.hasOwnProperty('fen')) {
-                        var game = new Game(games[0]);
-                        gameControls.games[game.id] = game;
-                    } else {
-                        console.log('challenge created', result);
-                    }
-                },
-                error: function (e) {
-                    console.log('error issuing challenge', e.error);
-                }
-            })
         }
-    };
+    }
 })();
 
-$(document).ready(function () {
-    $('#chessboard').fadeTo('slow', 0.25);
-    $('#playButton').click(gameControls.issueChallenge);
-});
 
-function Game(meta) {
-    this.id = meta.id;
-    this.black = meta.black;
-    this.white = meta.white;
-    this.activeColour = meta.activeColour;
-    this.fen = meta.fen;
-    this.san = this.fen.substring(0, this.fen.indexOf(' '));
-    this.moves = meta.moves;
-    this.game = new Chess(this.fen);
-    this.playerUp = this.activeColour == game.turn();
-    this.update = function (meta) {
-        this.activeColour = meta.activeColour;
-        this.playerUp = this.activeColour == game.turn();
-        this.fen = meta.fen;
-        this.san = this.fen.substring(0, this.fen.indexOf(' '));
-        this.moves = meta.moves;
-        var lastMove = this.moves.slice(this.moves.length - 1);
-        this.game.move(lastMove.from, lastMove.to);
-        this.board.position(this.fen);
+var game = function(meta, existingEngine) {
+
+    var engine = existingEngine || (function() {
+        var e = new Chess(meta.fen);
+        e.san = function() {
+            var fen = e.fen();
+            return fen.substring(0, fen.indexOf(' '));
+        };
+        e.update = function(game) {
+            var lastMove = game.moves.slice(game.moves.length - 1);
+            this.move(lastMove.from, lastMove.to);
+        };
+        return e;
+    })();
+
+    return {
+
+        id: meta.id,
+
+        engine: engine,
+
+        playerColour: function() {
+            if (loginMod.player.id == meta.white) {
+                return "w";
+            } else if (loginMod.player.id == meta.black) {
+                return "b";
+            }
+            return undefined;
+        },
+
+        validMovesFrom: function(source) {
+            if (this.engine.turn() == this.playerColour()) {
+                var moves = this.engine.moves({square: source});
+                var toCoordinates = function (s) {
+                    return s.substring(s.length - 2);
+                };
+                return $.map(moves, toCoordinates);
+            } else {
+                return [];
+            }
+        },
+
+        move: function(from, to) {
+            return this.engine.move(from, to);
+        },
+
+        san: engine.san,
+
+        eventSource: (function() {
+            var eshq = new ESHQ("forkpin-game-" + meta.id);
+            eshq.onmessage = function (e) {
+                var gameData = JSON.parse(e.data);
+                console.log("game update", gameData);
+                engine.update(gameData);
+                chessboard.update(gameData);
+            };
+            return eshq;
+        })()
+
     };
-    $('#chessboard').fadeTo('slow', 1.0);
-    new ServerEvents(this);
-    gameControls.board.focusOn(this);
-}
+};

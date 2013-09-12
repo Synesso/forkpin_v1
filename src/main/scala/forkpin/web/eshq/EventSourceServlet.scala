@@ -14,8 +14,4 @@ class EventSourceServlet extends ForkpinServlet with Config with FutureSupport {
     eventSourceClient.open(Channel(params("channel")))
   }
 
-  get("/test") {
-    eventSourceClient.send(Channel("forkpin"), "make it funky da da da")
-  }
-
 }

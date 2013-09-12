@@ -47,7 +47,6 @@ var loginMod = (function () {
                     return;
                 }
                 loginMod.connectServer(profile.id);
-                gameControls.loadGamesForUser();
                 divs.userName.append(profile.displayName);
                 divs.selfPanel.append('<img src="' + profile.image.url + '" class="img-circle"/>');
                 $('#gConnect').hide();
@@ -84,7 +83,7 @@ var loginMod = (function () {
                 url: url,
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function (result) {
-                    // helper.people();
+                    gameControls.loadGamesForUser();
                 },
                 error: function (e) {
                     console.log('error connecting:', e.status, e.statusText);
