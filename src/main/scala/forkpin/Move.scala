@@ -8,7 +8,7 @@ case class Move(from: RankAndFile, to: RankAndFile,
                 capture: Option[RankAndFile] = None,
                 implication: Option[Move] = None,
                 promote: Option[Promotion] = None) {
-  lazy val forClient: Map[String, Any] = Map("from" -> from.toString, "to" -> to.toString)
+  lazy val forClient: Map[String, Any] = Map("from" -> from.toString.toLowerCase, "to" -> to.toString.toLowerCase)
 }
 
 case class Promotion(at: RankAndFile, to: Piece)

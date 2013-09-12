@@ -22,6 +22,7 @@ var chessboard = (function() {
             config.onDrop = function(from, to) {
                 var result = game.move({from: from, to: to});
                 if (result != null) {
+                    console.log("This user moved. Next player is ", game.engine.turn());
                     $.ajax({
                         type: 'POST',
                         url: window.location.origin + '/move',
@@ -87,8 +88,7 @@ var game = function(meta, existingEngine) {
             return fen.substring(0, fen.indexOf(' '));
         };
         e.update = function(game) {
-            var lastMove = game.moves.slice(game.moves.length - 1);
-            this.move(lastMove.from, lastMove.to);
+            e.move(game.moves[0]);
         };
         return e;
     })();
