@@ -38,6 +38,7 @@ case class Game(id: Int, white: User, black: User,
 
   lazy val pickledMoves = moves.map{m => m.from.toString + m.to.toString}.mkString
 
+  // todo - it's kooky to ask who the user is. Bake white or black into the type?
   def move(user: User, from: String, to: String): Either[InvalidMove, Game] =
     move(user, RankAndFile.withName(from), RankAndFile.withName(to))
 
@@ -62,7 +63,8 @@ case class Game(id: Int, white: User, black: User,
     val movingPiece = this.board.pieces(move.from.id)
     val pieces = this.board.pieces.updated(move.from.id, None).updated(move.to.id, movingPiece)
     val newMoves = move +: moves
-    this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves)
+    val moved = this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves)
+    move.implication.map(moved.applyMove).getOrElse(moved)
   }
 
   lazy val forClient: Map[String, Any] = Map(

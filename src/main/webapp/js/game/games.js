@@ -40,7 +40,11 @@ var chessboard = (function() {
                 }
                 return 'snapback';
             };
-            // todo - onSnapEnd is required to sync the board to the game state where move has side-effects.
+            config.onSnapEnd = function () {
+                if (game.fen !== game.san()) {
+                    board.position(game.san());
+                }
+            };
         },
 
         update: function(game) {

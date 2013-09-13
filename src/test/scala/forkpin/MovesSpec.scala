@@ -3,10 +3,9 @@ package forkpin
 import forkpin.persist.Persistent.User
 import RankAndFile._
 import org.specs2.Specification
+import org.specs2.mock.Mockito
 
-class MovesSpec extends Specification with TestImplicits {
-
-  def is = s2"""
+class MovesSpec extends Specification with TestImplicits { def is = s2"""
 
   A rook should
     move along its own rank and file only $rook1
@@ -67,15 +66,7 @@ class MovesSpec extends Specification with TestImplicits {
     take diagonally even when blocked on the file $blackPawnBlockedCanStillTake
 
   """
-  val startGame = Game(1, User("w", null), User("b", null), User("w", null))
-  val emptyGame = startGame.copy(board = Board())
-  val castleGame = startGame.copy(board = Board(pieces = Vector[(RankAndFile, Piece)](
-    A1 -> WhiteRook, E1 -> WhiteKing, H1 -> WhiteRook,
-    A8 -> BlackRook, E8 -> BlackKing, H8 -> BlackRook
-  ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
-    arr.updated(next._1.id, Some(next._2))
-  }))
-  
+
   def rook1 = WhiteRook.validMoves(D6, emptyGame).map(_.to) must containTheSameElementsAs(
     Seq(D1, D2, D3, D4, D5, D7, D8, A6, B6, C6, E6, F6, G6, H6))
 

@@ -2,8 +2,21 @@ package forkpin
 
 import forkpin.RankAndFile._
 import scala.Some
+import forkpin.persist.Persistent.User
+import org.specs2.mock.Mockito
 
-trait TestImplicits {
+trait TestImplicits extends Mockito {
+
+  val black = mock[User]
+  val white = mock[User]
+  val startGame = Game(1, white, black, white)
+  val emptyGame = startGame.copy(board = Board())
+  val castleGame = startGame.copy(board = Board(pieces = Vector[(RankAndFile, Piece)](
+    A1 -> WhiteRook, E1 -> WhiteKing, H1 -> WhiteRook,
+    A8 -> BlackRook, E8 -> BlackKing, H8 -> BlackRook
+  ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
+    arr.updated(next._1.id, Some(next._2))
+  }))
 
   implicit class GameWrapper(game: Game) {
     def place(rfPiece: (RankAndFile, Piece)) = {

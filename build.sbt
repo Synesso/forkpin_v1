@@ -46,7 +46,7 @@ ivyScala ~= { (is: Option[IvyScala]) =>
     i.copy(checkExplicit = false)
 }
 
-scalacOptions in Test ++= Seq("-Yrangepos")
+scalacOptions in Test ++= Seq("-Yrangepos", "-language:reflectiveCalls")
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 

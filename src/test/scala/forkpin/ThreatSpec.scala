@@ -1,13 +1,10 @@
 package forkpin
 
 import RankAndFile._
-import forkpin.persist.Persistent
-import Persistent.User
 import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.{Gen, Arbitrary}
-import org.specs2.mock.Mockito
 
-class ThreatSpec extends Specification with ScalaCheck with TestImplicits with Mockito { def is = s2"""
+class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
 
   Any square should
     have $noThreatOnEmptyBoard
@@ -157,15 +154,11 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits with M
     second <- Gen.oneOf((RankAndFile.values -- first.surroundingSquares - first).toSeq)
   } yield (first, second))
 
-  val (white, black) = (mock[User], mock[User])
-
   def game(pieces: (RankAndFile, Piece)*): Game = {
     val b = Board(pieces = pieces.foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
       arr.updated(next._1.id, Some(next._2))
     })
     Game(1, white, black, white, board = b)
   }
-
-  val emptyGame = game()
 
 }
