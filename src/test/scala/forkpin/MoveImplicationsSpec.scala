@@ -42,13 +42,13 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
   }
 
   def pawnWhenWhiteEnPassant = {
-//    val epGame = game(B7 -> BlackPawn, C5 -> WhitePawn).copy(nextMove = black).move(black, B7, B5).right.get
-//    epGame.move(white, C5, B6) must beRight.like{case (g: Game) => g.isOccupiedAt(B5) must beFalse}
-    pending
+    val epGame = game(B7 -> BlackPawn, C5 -> WhitePawn).copy(nextMove = black).move(black, B7, B5).right.get
+    epGame.move(white, C5, B6) must beRight.like{case (g: Game) => g.isOccupiedAt(B5) must beFalse}
   }
 
   def pawnWhenBlackEnPassant = {
-    todo
+    val epGame = game(E2 -> WhitePawn, D4 -> BlackPawn).move(white, E2, E4).right.get
+    epGame.move(black, D4, E3) must beRight.like{case (g: Game) => g.isOccupiedAt(E4) must beFalse}
   }
 
   private def have(piece: Piece) = new {

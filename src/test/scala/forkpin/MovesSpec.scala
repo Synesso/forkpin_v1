@@ -1,9 +1,7 @@
 package forkpin
 
-import forkpin.persist.Persistent.User
 import RankAndFile._
 import org.specs2.Specification
-import org.specs2.mock.Mockito
 
 class MovesSpec extends Specification with TestImplicits { def is = s2"""
 
@@ -211,7 +209,7 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
   def castleQueenSideOkWhenRookIsUnderThreat =
     WhiteKing.validMoves(E1, castleGame.place(A8 -> BlackRook)).map(_.to) must contain(C1)
 
-  def whiteEnPassant = pending
+  def whiteEnPassant = WhitePawn.validMoves(G5, startGame.copy(enPassantTarget = Some(F6))).map(_.to) must contain(F6)
 
-  def blackEnPassant = pending
+  def blackEnPassant = BlackPawn.validMoves(D4, startGame.copy(enPassantTarget = Some(C3))).map(_.to) must contain(C3)
 }

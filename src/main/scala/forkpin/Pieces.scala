@@ -34,9 +34,11 @@ trait Pawn extends Role {
   }
 
   override def validCapturingMoves(rf: RankAndFile, game: Game) =
-    Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).filter { pos =>
-      game.board.colourAt(pos) == Some(opposite)
-    }.map(to => Move(rf, to, Some(to)))
+    Set(forward + QueenSide, forward + KingSide).flatMap(rf.towards).flatMap { pos =>
+      if (game.board.colourAt(pos) == Some(opposite)) Some(Move(rf, pos, Some(pos)))
+      else if (game.enPassantTarget == Some(pos)) Some(Move(rf, pos, pos.towards(opposite.forward)))
+      else None
+    }
 
 }
 object Pawn extends RoleMarker
