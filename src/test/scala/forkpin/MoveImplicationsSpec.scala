@@ -12,6 +12,13 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
     the black king castles king side $rookWhenBlackKingKingSide
     the black king castles queen side $rookWhenBlackKingQueenSide
 
+  The en passant flag should be set when
+    the pawn has moved two spaces on first move $enPassantFlag
+
+  The enemy pawn should be removed when
+    the white pawn performs en passant $pawnWhenWhiteEnPassant
+    the black pawn performs en passant $pawnWhenBlackEnPassant
+
 """
 
   def rookWhenWhiteKingKingSide = {
@@ -28,6 +35,20 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
 
   def rookWhenBlackKingQueenSide = {
     castleGame.copy(nextMove = black).move(black, from = E8, to = C8) must have(BlackRook).at(D8)
+  }
+
+  def enPassantFlag = {
+    startGame.move(white, C2, C4) must beRight.like{case (g: Game) => g.enPassantTarget must beSome(C3)}
+  }
+
+  def pawnWhenWhiteEnPassant = {
+//    val epGame = game(B7 -> BlackPawn, C5 -> WhitePawn).copy(nextMove = black).move(black, B7, B5).right.get
+//    epGame.move(white, C5, B6) must beRight.like{case (g: Game) => g.isOccupiedAt(B5) must beFalse}
+    pending
+  }
+
+  def pawnWhenBlackEnPassant = {
+    todo
   }
 
   private def have(piece: Piece) = new {

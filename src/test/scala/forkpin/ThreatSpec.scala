@@ -154,11 +154,4 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def 
     second <- Gen.oneOf((RankAndFile.values -- first.surroundingSquares - first).toSeq)
   } yield (first, second))
 
-  def game(pieces: (RankAndFile, Piece)*): Game = {
-    val b = Board(pieces = pieces.foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
-      arr.updated(next._1.id, Some(next._2))
-    })
-    Game(1, white, black, white, board = b)
-  }
-
 }

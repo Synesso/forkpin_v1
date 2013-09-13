@@ -5,9 +5,10 @@ import Persistent.User
 import RankAndFile._
 
 case class Move(from: RankAndFile, to: RankAndFile,
-                capture: Option[RankAndFile] = None,
+                capture: Option[RankAndFile] = None, // todo - this is not being used
                 implication: Option[Move] = None,
-                promote: Option[Promotion] = None) {
+                promote: Option[Promotion] = None,
+                enPassantTarget: Option[RankAndFile] = None) {
   lazy val forClient: Map[String, Any] = Map("from" -> from.toString.toLowerCase, "to" -> to.toString.toLowerCase)
 }
 

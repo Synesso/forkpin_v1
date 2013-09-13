@@ -63,7 +63,7 @@ case class Game(id: Int, white: User, black: User,
     val movingPiece = this.board.pieces(move.from.id)
     val pieces = this.board.pieces.updated(move.from.id, None).updated(move.to.id, movingPiece)
     val newMoves = move +: moves
-    val moved = this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves)
+    val moved = this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves, enPassantTarget = move.enPassantTarget)
     move.implication.map(moved.applyMove).getOrElse(moved)
   }
 

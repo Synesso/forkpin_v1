@@ -53,6 +53,7 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
     become blocked by enemy pieces on the file $whitePawnBlockedByEnemy
     become blocked by friendly pieces on the file $whitePawnBlockedByFriend
     take diagonally even when blocked on the file $whitePawnBlockedCanStillTake
+    take in passing $whiteEnPassant
 
   A black pawn should
     move forward 1 or 2 squares from 2nd rank $blackPawnFirstMove
@@ -64,6 +65,7 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
     become blocked by enemy pieces on the file $blackPawnBlockedByEnemy
     become blocked by friendly pieces on the file $blackPawnBlockedByFriend
     take diagonally even when blocked on the file $blackPawnBlockedCanStillTake
+    take in passing $blackEnPassant
 
   """
 
@@ -209,4 +211,7 @@ class MovesSpec extends Specification with TestImplicits { def is = s2"""
   def castleQueenSideOkWhenRookIsUnderThreat =
     WhiteKing.validMoves(E1, castleGame.place(A8 -> BlackRook)).map(_.to) must contain(C1)
 
+  def whiteEnPassant = pending
+
+  def blackEnPassant = pending
 }

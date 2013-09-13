@@ -25,8 +25,12 @@ trait Pawn extends Role {
       case (6, BlackSide) => 2
       case _ => 1
     }
+    val forwards: Set[Move] = rf.seek(game, colour, depth, allowCapture = false, forward).map{m =>
+      if (math.abs(m.from.id - m.to.id) == 16) m.copy(enPassantTarget = m.from.towards(forward))
+      else m
+    }
     val captures: Set[Move] = validCapturingMoves(rf, game)
-    rf.seek(game, colour, depth, allowCapture = false, forward) ++ captures
+    forwards ++ captures
   }
 
   override def validCapturingMoves(rf: RankAndFile, game: Game) =
