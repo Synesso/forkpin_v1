@@ -60,12 +60,14 @@ case class Game(id: Int, white: User, black: User,
   }
 
   private def applyMove(move: Move): Game = {
-    val movingPiece = this.board.pieces(move.from.id)
-    val pieces = move.capture.foldLeft(this.board.pieces){(p, rf) => p.updated(rf.id, None)}.
-      updated(move.from.id, None).updated(move.to.id, movingPiece)
     val newMoves = move +: moves
-    val moved = this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves, enPassantTarget = move.enPassantTarget)
-    move.implication.map(moved.applyMove).getOrElse(moved)
+    val updates: Seq[(RankAndFile, Option[Piece])] =
+      move.implication.toSeq.flatMap{m => Seq((m.to,board.pieceAt(m.from)), (m.from, Option.empty[Piece]))} ++
+      move.capture.toSeq.map{rf => (rf, Option.empty[Piece])} ++
+      Seq((move.to, board.pieceAt(move.from)), (move.from, Option.empty[Piece]))
+    
+    val pieces = updates.foldLeft(this.board.pieces){case (ps, (rf, piece)) => ps.updated(rf.id, piece)}
+    this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves, enPassantTarget = move.enPassantTarget)
   }
 
   lazy val forClient: Map[String, Any] = Map(

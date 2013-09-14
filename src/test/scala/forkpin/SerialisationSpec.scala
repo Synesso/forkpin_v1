@@ -2,8 +2,6 @@ package forkpin
 
 import org.specs2.{ScalaCheck, Specification}
 import org.specs2.execute.Result
-import RankAndFile._
-
 
 class SerialisationSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
 

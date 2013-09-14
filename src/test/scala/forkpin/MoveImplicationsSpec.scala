@@ -19,6 +19,9 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
     the white pawn performs en passant $pawnWhenWhiteEnPassant
     the black pawn performs en passant $pawnWhenBlackEnPassant
 
+  The move history should
+    not include the castling implication $noRookInMoveHistory
+
 """
 
   def rookWhenWhiteKingKingSide = {
@@ -49,6 +52,12 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
   def pawnWhenBlackEnPassant = {
     val epGame = game(E2 -> WhitePawn, D4 -> BlackPawn).move(white, E2, E4).right.get
     epGame.move(black, D4, E3) must beRight.like{case (g: Game) => g.isOccupiedAt(E4) must beFalse}
+  }
+
+  def noRookInMoveHistory = {
+    castleGame.move(white, from = E1, to = C1) must beRight.like{case (g: Game) =>
+      g.moves must not contain{(m: Move) => (m.from, m.to) === (A1, D1) }
+    }
   }
 
   private def have(piece: Piece) = new {
