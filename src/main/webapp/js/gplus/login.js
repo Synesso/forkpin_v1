@@ -35,7 +35,6 @@ var loginMod = (function () {
             console.log('authResult', authResult);
         },
 
-        // todo - this should be where game data is retrieved and displayed
         renderProfile: function () {
             var request = gapi.client.plus.people.get({'userId': 'me'});
             request.execute(function (profile) {
@@ -91,43 +90,19 @@ var loginMod = (function () {
                 processData: false,
                 data: this.authResult.code
             });
+        },
+
+        profile: function(gPlusId, callback) {
+            $.ajax({
+                type: 'GET',
+                url: window.location.origin + '/profile/' + gPlusId,
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: callback,
+                error: function(e) {
+                    console.log('error getting profile', gPlusId, e);
+                }
+            });
         }
-
-        /**
-         * Calls the server endpoint to get the list of people visible to this app.
-         * todo - this is not used but could be for the challenge-friend functionality
-         */
-        /*
-         people: function() {
-         $.ajax({
-         type: 'GET',
-         url: window.location.origin + '/people',
-         contentType: 'application/octet-stream; charset=utf-8',
-         success: function(result) {
-         loginMod.appendCircled(result);
-         },
-         error: function(e) {
-         console.log('error getting people list', e);
-         }
-         });
-         },
-         */
-        /**
-         * Displays visible People retrieved from server.
-         *
-         * @param {Object} people A list of Google+ Person resources.
-         * todo - just an example of how to get people's details
-         */
-        /*
-         appendCircled: function(people) {
-         $('#visiblePeople').empty().append('Number of people visible to this app: ' + people.totalItems + '<br/>');
-         for (var personIndex in people.items) {
-         person = people.items[personIndex];
-         $('#visiblePeople').append('<img src="' + person.image.url + '" title="' + person.displayName + '">');
-         }
-         },
-         */
-
     };
 })();
 

@@ -73,7 +73,11 @@ var gameControls = (function () {
                 success: function (games) {
                     console.log("Games for current user:", games);
                     if (games.length > 0) {
-                        chessboard.focusOn(game(games[0]));
+                        var firstGame = game(games[0]);
+                        chessboard.focusOn(firstGame);
+                        loginMod.profile(firstGame.opponentId(), function(opponent) {
+                            $('#opponentPanel').append('<img src="' + opponent.image.url + '" class="img-circle"/>');
+                        })
                     }
                 },
                 error: function (e) {
@@ -110,6 +114,15 @@ var game = function(meta, existingEngine) {
                 return "w";
             } else if (loginMod.player.id == meta.black) {
                 return "b";
+            }
+            return undefined;
+        },
+
+        opponentId: function() {
+            if (loginMod.player.id == meta.white) {
+                return meta.black;
+            } else if (loginMod.player.id == meta.black) {
+                return meta.white;
             }
             return undefined;
         },

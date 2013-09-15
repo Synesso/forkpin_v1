@@ -63,6 +63,16 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     }
   }
 
+  get("/profile/:id") {
+    authorisedJsonResponse {token =>
+      val credential = new GoogleCredential.Builder().setJsonFactory(jsonFactory).setTransport(transport)
+        .setClientSecrets(clientId, clientSecret).build.setFromTokenResponse(
+        jsonFactory.fromString(token.value, classOf[GoogleTokenResponse]))
+      val plusService = new Plus.Builder(transport, jsonFactory, credential).setApplicationName(appName).build
+      Ok(s"${plusService.people.get(params("id")).execute}")
+    }
+  }
+
   get("/people") {
     authorisedJsonResponse {token =>
       val credential = new GoogleCredential.Builder().setJsonFactory(jsonFactory).setTransport(transport)
