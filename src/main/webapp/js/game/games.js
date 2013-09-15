@@ -23,6 +23,7 @@ var chessboard = (function() {
                 var result = game.move({from: from, to: to});
                 if (result != null) {
                     console.log("This user moved. Next player is ", game.engine.turn());
+                    //noinspection JSUnusedGlobalSymbols
                     $.ajax({
                         type: 'POST',
                         url: window.location.origin + '/move',
@@ -65,6 +66,7 @@ var chessboard = (function() {
 var gameControls = (function () {
     return {
         loadGamesForUser: function () {
+            //noinspection JSUnusedGlobalSymbols
             $.ajax({
                 type: 'GET',
                 url: window.location.origin + '/games',
@@ -114,11 +116,8 @@ var game = function(meta, existingEngine) {
 
         validMovesFrom: function(source) {
             if (this.engine.turn() == this.playerColour()) {
-                var moves = this.engine.moves({square: source});
-                var toCoordinates = function (s) {
-                    return s.substring(s.length - 2);
-                };
-                return $.map(moves, toCoordinates);
+                var moves = this.engine.moves({square: source, verbose: true});
+                return $.map(moves, function (m) { return m.to });
             } else {
                 return [];
             }
