@@ -82,7 +82,7 @@ trait King extends Role {
         game.board.pieceAt(ca.rookStarts).exists(_ == colour.sided(Rook)) &&
         ca.betweenRookAndKing.forall(rf => !game.isOccupiedAt(rf)) &&
         ca.kingMoves.forall{rf => !game.isThreatenedAt(rf)}
-      }.map{ca => Move(rf, ca.kingMoves.last, implication = Some(Move(ca.rookStarts, ca.kingMoves(1))))}
+      }.map{ca => Move(rf, ca.kingMoves.last, implication = Some(ImpliedMove(ca.rookStarts, ca.kingMoves(1))))}
     }.toSet
 
     castlingMoves ++ validCapturingMoves(rf, game)

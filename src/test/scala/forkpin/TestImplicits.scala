@@ -56,12 +56,16 @@ trait TestImplicits extends Mockito {
   // scalacheck generators
   val rankAndFileGenerator = Gen.oneOf(RankAndFile.values.toSeq)
   val promotionGenerator = Gen.oneOf(Seq(Promotion(A1, WhiteQueen))) // todo - better
+  val impliedMoveGenerator = for {
+      from <- rankAndFileGenerator
+      to <- rankAndFileGenerator
+    } yield ImpliedMove(from, to)
   def optional[T](g: Gen[T]) = for (qty <- Gen.choose(0, 1); xs <- Gen.listOfN[T](qty, g)) yield xs.headOption
   val moveGenerator: Gen[Move] = for {
     from <- rankAndFileGenerator
     to <- rankAndFileGenerator
     capture <- optional(rankAndFileGenerator)
-    implication <- optional(moveGenerator)
+    implication <- optional(impliedMoveGenerator)
     promotion <- optional(promotionGenerator)
   } yield Move(from, to, capture, implication, promotion)
 
