@@ -25,37 +25,37 @@ class MoveImplicationsSpec extends Specification with TestImplicits { def is = s
 """
 
   def rookWhenWhiteKingKingSide = {
-    castleGame.move(white, from = E1, to = G1) must have(WhiteRook).at(F1)
+    castleGame.move(from = E1, to = G1) must have(WhiteRook).at(F1)
   }
 
   def rookWhenWhiteKingQueenSide = {
-    castleGame.move(white, from = E1, to = C1) must have(WhiteRook).at(D1)
+    castleGame.move(from = E1, to = C1) must have(WhiteRook).at(D1)
   }
 
   def rookWhenBlackKingKingSide = {
-    castleGame.copy(nextMove = black).move(black, from = E8, to = G8) must have(BlackRook).at(F8)
+    castleGame.copy(nextMove = black).move(from = E8, to = G8) must have(BlackRook).at(F8)
   }
 
   def rookWhenBlackKingQueenSide = {
-    castleGame.copy(nextMove = black).move(black, from = E8, to = C8) must have(BlackRook).at(D8)
+    castleGame.copy(nextMove = black).move(from = E8, to = C8) must have(BlackRook).at(D8)
   }
 
   def enPassantFlag = {
-    startGame.move(white, C2, C4) must beRight.like{case (g: Game) => g.enPassantTarget must beSome(C3)}
+    startGame.move(C2, C4) must beRight.like{case (g: Game) => g.enPassantTarget must beSome(C3)}
   }
 
   def pawnWhenWhiteEnPassant = {
-    val epGame = game(B7 -> BlackPawn, C5 -> WhitePawn).copy(nextMove = black).move(black, B7, B5).right.get
-    epGame.move(white, C5, B6) must beRight.like{case (g: Game) => g.isOccupiedAt(B5) must beFalse}
+    val epGame = game(B7 -> BlackPawn, C5 -> WhitePawn).copy(nextMove = black).move(B7, B5).right.get
+    epGame.move(C5, B6) must beRight.like{case (g: Game) => g.isOccupiedAt(B5) must beFalse}
   }
 
   def pawnWhenBlackEnPassant = {
-    val epGame = game(E2 -> WhitePawn, D4 -> BlackPawn).move(white, E2, E4).right.get
-    epGame.move(black, D4, E3) must beRight.like{case (g: Game) => g.isOccupiedAt(E4) must beFalse}
+    val epGame = game(E2 -> WhitePawn, D4 -> BlackPawn).move(E2, E4).right.get
+    epGame.move(D4, E3) must beRight.like{case (g: Game) => g.isOccupiedAt(E4) must beFalse}
   }
 
   def noRookInMoveHistory = {
-    castleGame.move(white, from = E1, to = C1) must beRight.like{case (g: Game) =>
+    castleGame.move(from = E1, to = C1) must beRight.like{case (g: Game) =>
       g.moves must not contain{(m: Move) => (m.from, m.to) === (A1, D1) }
     }
   }

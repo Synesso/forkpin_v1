@@ -91,7 +91,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     authorisedJsonResponse {token =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
-        game.move(user, from, to).fold(
+        game.move(from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove.forClient),
           (updatedGame) => {
             Persistent.updateGame(updatedGame)

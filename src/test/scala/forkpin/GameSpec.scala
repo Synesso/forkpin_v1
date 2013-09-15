@@ -36,15 +36,15 @@ class GameSpec extends Specification with ScalaCheck { def is = s2"""
     Set(BlackKingSide, BlackQueenSide, WhiteKingSide, WhiteQueenSide))
 
   def allWhitePawnsToMove1Or2Squares = Arbitrary(pawnMoves){case (from: RankAndFile, to: RankAndFile) =>
-    aNewGame.move(white, from, to) must beRight
+    aNewGame.move(from, to) must beRight
   }
 
   def whiteKnightsCanMove = Arbitrary(knightMoves){case (from: RankAndFile, to: RankAndFile) =>
-    aNewGame.move(white, from, to) must beRight
+    aNewGame.move(from, to) must beRight
   }
 
   def nothingElseCanMove = Arbitrary(invalidMoves) {case (from: RankAndFile, to: RankAndFile) =>
-    aNewGame.move(white, from, to) must beLeft
+    aNewGame.move(from, to) must beLeft
   }.set(minTestsOk = 4000)
 
   val pawnMoves = for {

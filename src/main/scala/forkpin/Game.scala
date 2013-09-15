@@ -38,12 +38,11 @@ case class Game(id: Int, white: User, black: User,
 
   lazy val pickledMoves = moves.map{m => m.from.toString + m.to.toString}.mkString
 
-  // todo - it's kooky to ask who the user is. Bake white or black into the type?
-  def move(user: User, from: String, to: String): Either[InvalidMove, Game] =
-    move(user, RankAndFile.withName(from), RankAndFile.withName(to))
+  def move(from: String, to: String): Either[InvalidMove, Game] =
+    move(RankAndFile.withName(from), RankAndFile.withName(to))
 
-  def move(user: User, from: RankAndFile, to: RankAndFile): Either[InvalidMove, Game] = {
-    new MoveEvaluator(this, user).evaluate(from, to).fold(
+  def move(from: RankAndFile, to: RankAndFile): Either[InvalidMove, Game] = {
+    new MoveEvaluator(this, nextMove).evaluate(from, to).fold(
       (invalidMove) => Left(invalidMove),
       (move) => Right(applyMove(move))
     )
@@ -65,7 +64,7 @@ case class Game(id: Int, white: User, black: User,
       move.implication.toSeq.flatMap{m => Seq((m.to,board.pieceAt(m.from)), (m.from, Option.empty[Piece]))} ++
       move.capture.toSeq.map{rf => (rf, Option.empty[Piece])} ++
       Seq((move.to, board.pieceAt(move.from)), (move.from, Option.empty[Piece]))
-    
+
     val pieces = updates.foldLeft(this.board.pieces){case (ps, (rf, piece)) => ps.updated(rf.id, piece)}
     this.copy(nextMove = enemy, board = Board(pieces), moves = newMoves, enPassantTarget = move.enPassantTarget)
   }
@@ -101,7 +100,7 @@ object Game {
       val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
       (rfs.head, rfs.tail.head)
     }.foldRight(startGame){case ((from, to), game) =>
-      game.move(game.nextMove, from, to).right.get
+      game.move(from, to).right.get
     }
   }
 }
