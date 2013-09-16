@@ -47,7 +47,7 @@ var loginMod = (function () {
                 }
                 loginMod.connectServer(profile.id);
                 divs.userName.append(profile.displayName);
-                divs.selfPanel.append('<img src="' + profile.image.url + '" class="img-circle"/>');
+                chessboard.renderPlayer(profile);
                 $('#gConnect').hide();
                 $('#userMenu').show();
             });

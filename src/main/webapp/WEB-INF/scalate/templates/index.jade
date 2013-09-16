@@ -1,7 +1,9 @@
 div{:class => "container-fluid", :name => "games"}
   div{:class => "row-fluid"}
-    div{:id => "opponentPanel", :class => "offset3 span6 well", :style => "margin-bottom: 0px;"}
-  div{:class => "row-fluid"}
     div{:id => "chessboard", :style => "display: table; margin: 0 auto; height: 420px; width: 420px;"}
   div{:class => "row-fluid"}
-    div{:id => "selfPanel", :class => "offset3 span6 centering well"}
+    div{:id => "playerPanel", :class => "offset3 span6 centering well"}
+      div{:class => "row-fluid"}
+        div{:id => "selfPanel", :class => "span2"}
+        div{:id => "gameStatsPanel", :class => "span8"}
+        div{:id => "opponentPanel", :class => "span2", :style => "text-align: right;"}

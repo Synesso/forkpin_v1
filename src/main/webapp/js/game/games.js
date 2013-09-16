@@ -8,6 +8,12 @@ var chessboard = (function() {
 
     var board = new ChessBoard('chessboard', config);
 
+    var renderProfile = function(profile, div) {
+        div.hide();
+        div.append('<img src="' + profile.image.url + '" class="img-circle"/>');
+        div.show('slow');
+    };
+
     return {
 
         focus: game,
@@ -56,8 +62,11 @@ var chessboard = (function() {
                     board.position(san);
                 }
             }
-        }
+        },
 
+        renderPlayer: function(player) { renderProfile(player, $('#selfPanel')); },
+
+        renderOpponent: function(player) { renderProfile(player, $('#opponentPanel')); }
     }
 
 })();
@@ -75,10 +84,7 @@ var gameControls = (function () {
                     if (games.length > 0) {
                         var firstGame = game(games[0]);
                         chessboard.focusOn(firstGame);
-                        loginMod.profile(firstGame.opponentId(), function(opponent) {
-                            // todo - lets get this into the board ...
-                            $('#opponentPanel').append('<img src="' + opponent.image.url + '" class="img-circle"/>');
-                        })
+                        loginMod.profile(firstGame.opponentId(), chessboard.renderOpponent);
                     }
                 },
                 error: function (e) {
