@@ -51,10 +51,10 @@ case class Game(id: Int, white: User, black: User,
   def isOccupiedAt(rf: RankAndFile) = board.pieceAt(rf).isDefined
 
   def isThreatenedAt(rf: RankAndFile) = {
-    roles.exists{role =>
+    roles.par.exists{role =>
       val pretence = nextColour sided role
       val lookingFor = nextColour.opposite sided role
-      pretence.validCapturingMoves(rf, this).exists{move => board.pieceAt(move.to) == Some(lookingFor)}
+      pretence.validCapturingMoves(rf, this).par.exists{move => board.pieceAt(move.to) == Some(lookingFor)}
     }
   }
 

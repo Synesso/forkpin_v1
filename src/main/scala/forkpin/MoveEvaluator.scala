@@ -24,7 +24,6 @@ class MoveEvaluator(game: Game, user: User) {
     if (!isUsersTurn) invalid(s"It is not the turn for user ${user.gPlusId}")
     else if (!isOwnedPiece) invalid(s"The piece $piece at $from is not owned by user ${user.gPlusId}")
     else if (!canMoveToTarget) invalid(s"The piece $piece at $from cannot move to $to")
-    // ...
     else Right(validMoves(to))
 
   }

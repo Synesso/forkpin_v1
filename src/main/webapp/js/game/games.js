@@ -76,6 +76,7 @@ var gameControls = (function () {
                         var firstGame = game(games[0]);
                         chessboard.focusOn(firstGame);
                         loginMod.profile(firstGame.opponentId(), function(opponent) {
+                            // todo - lets get this into the board ...
                             $('#opponentPanel').append('<img src="' + opponent.image.url + '" class="img-circle"/>');
                         })
                     }
