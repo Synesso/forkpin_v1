@@ -8,9 +8,16 @@ var chessboard = (function() {
 
     var board = new ChessBoard('chessboard', config);
 
-    var renderProfile = function(profile, div) {
+    var renderProfile = function(profile, div, leftAligned) {
         div.hide();
-        div.append('<img src="' + profile.image.url + '" class="img-circle"/>');
+        div.empty();
+        var htmlAvatar = '<img src="' + profile.image.url + '" class="img-circle"/>';
+        var htmlName = '<span style="vertical-align: bottom; font-size: 24.5px; font-weight: bold;">' + profile.name.givenName + '</span>';
+        if (leftAligned) {
+            div.append(htmlAvatar + htmlName);
+        } else {
+            div.append(htmlName + htmlAvatar);
+        }
         div.show('slow');
     };
 
@@ -64,9 +71,9 @@ var chessboard = (function() {
             }
         },
 
-        renderPlayer: function(player) { renderProfile(player, $('#selfPanel')); },
+        renderPlayer: function(player) { renderProfile(player, $('#selfPanel'), true); },
 
-        renderOpponent: function(player) { renderProfile(player, $('#opponentPanel')); }
+        renderOpponent: function(player) { renderProfile(player, $('#opponentPanel'), false); }
     }
 
 })();
