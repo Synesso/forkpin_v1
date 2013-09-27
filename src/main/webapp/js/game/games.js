@@ -25,6 +25,14 @@ var chessboard = (function() {
 
         focus: game,
 
+        boardDiv: $('#chessboard'),
+
+        // the game is dissociated from the board and the board is overlayed with "new game" control.
+        removeFocus: function() {
+            this.focus = null;
+            this.boardDiv.children().children().addClass('challengemode'); // child with name 'board-b72b1'
+        },
+
         focusOn: function(game) {
             this.focus = game;
             board.position(game.san());
@@ -78,6 +86,7 @@ var chessboard = (function() {
 
 })();
 
+chessboard.removeFocus();
 
 var gameControls = (function () {
     return {

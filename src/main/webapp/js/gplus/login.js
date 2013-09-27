@@ -23,16 +23,12 @@ var loginMod = (function () {
             if (authResult['access_token']) {
                 // The user is signed in
                 this.authResult = authResult;
-                // After we load the Google+ API, render the profile data from Google+.
                 gapi.client.load('plus', 'v1', this.renderProfile);
                 $('#gDisconnect').show();
             } else if (authResult['error']) {
-                // There was an error, which means the user is not signed in.
-                // As an example, you can troubleshoot by writing to the console:
-                console.log('There was an error: ' + authResult['error']);
+                // The user is not signed in.
                 $('#gConnect').show();
             }
-            console.log('authResult', authResult);
         },
 
         renderProfile: function () {

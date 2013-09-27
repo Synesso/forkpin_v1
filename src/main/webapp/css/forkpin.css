@@ -1,0 +1,47 @@
+
+#chessboard {
+    display: table; margin: 0 auto; height: 420px; width: 420px;
+}
+
+#challengeOverlay {
+    display: table;
+    z-index: 300;
+    height: 266px;
+    width: 416px;
+    margin: 0 auto;
+    background: #fff;
+    position: relative;
+    top: -422px;
+    left: -2px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 26px;
+    cursor: pointer;
+    opacity: 0.6;
+    border: 2px dashed;
+    border-radius: 6px;
+    padding-top: 150px;
+    transition: all 200ms ease;
+}
+
+.newGameIcon {
+    vertical-align: middle;
+    display: block;
+    background-image: url("/img/chesspieces/wikipedia/bK.png");
+    background-size: 80px 80px;
+    width: 80px;
+    height: 80px;
+    margin: auto;
+    margin-bottom: 10px;
+    font-family: "Helvetica Neue","Helvetica","Arial","Kai","KaiTi",Sans-Serif;
+}
+
+#challengeOverlay:hover {
+    opacity: 0.9;
+}
+
+.challengemode {
+    border: none;
+}
+
+
