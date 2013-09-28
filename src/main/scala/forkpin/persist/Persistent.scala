@@ -6,6 +6,7 @@ import Database.threadLocalSession
 import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
 import forkpin.{Game, Config}
+import scala.slick.lifted.ColumnOption.DBType
 
 object Persistent extends Config {
 
@@ -29,7 +30,7 @@ object Persistent extends Config {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def whiteId = column[String]("white_id")
     def blackId = column[String]("black_id")
-    def moves = column[String]("moves")
+    def moves = column[String]("moves", DBType("text"))
     def * = id.? ~ whiteId ~ blackId ~ moves <> (GameRow.apply _, GameRow.unapply _)
     def white = foreignKey("white_fk", whiteId, Users)(_.gPlusId)
     def black = foreignKey("black_fk", blackId, Users)(_.gPlusId)
