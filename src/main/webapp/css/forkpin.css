@@ -31,9 +31,8 @@
     background-size: 80px 80px;
     width: 80px;
     height: 80px;
-    margin: auto;
-    margin-bottom: 10px;
-    font-family: "Helvetica Neue","Helvetica","Arial","Kai","KaiTi",Sans-Serif;
+    margin: auto auto 10px;
+    font-family: "Helvetica Neue","Helvetica","Arial","Kai","KaiTi",sans-serif;
 }
 
 #challengeOverlay:hover {
