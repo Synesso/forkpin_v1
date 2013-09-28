@@ -45,9 +45,8 @@ var loginMod = (function () {
                     divs.selfPanel.append(profile.error);
                     return;
                 }
-                loginMod.connectServer(profile.id);
+                loginMod.connectServer(profile);
                 divs.userName.append(profile.displayName);
-                chessboard.renderPlayer(profile);
                 $('#gConnect').hide();
                 $('#userMenu').show();
             });
@@ -74,8 +73,9 @@ var loginMod = (function () {
             });
         },
 
-        connectServer: function (gplusId) {
-            url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId;
+        connectServer: function (profile) {
+            var gplusId = profile.id;
+            var url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId;
             console.log('connectServer -> ', url);
             $.ajax({
                 type: 'POST',
@@ -83,6 +83,7 @@ var loginMod = (function () {
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function (result) {
                     gameControls.loadGamesForUser();
+                    chessboard.renderPlayer(profile);
                 },
                 error: function (e) {
                     console.log('error connecting:', e.status, e.statusText);
