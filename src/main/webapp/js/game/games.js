@@ -79,7 +79,24 @@ var chessboard = (function() {
             }
         },
 
-        renderPlayer: function(player) { renderProfile(player, $('#selfPanel'), true); },
+        renderPlayer: function(player) {
+            renderProfile(player, $('#selfPanel'), true);
+            $.ajax({
+                type: 'GET',
+                url: window.location.origin + '/people',
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function(people) {
+                    for (var personIndex in people.items) {
+                     person = people.items[personIndex];
+                        $('#newGame-friends').append(
+                            '<img src="' + person.image.url + '" title="' + person.displayName + '" class="friendAvatar">');
+                     }
+                },
+                error: function(e) {
+                    console.log('error getting people list', e);
+                }
+            });
+        },
 
         renderOpponent: function(player) { renderProfile(player, $('#opponentPanel'), false); }
     }

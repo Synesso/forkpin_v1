@@ -35,6 +35,13 @@
     font-family: "Helvetica Neue","Helvetica","Arial","Kai","KaiTi",sans-serif;
 }
 
+.friendAvatar {
+    margin: 0.5em;
+    border: 1px #aaa solid;
+    cursor: pointer;
+    box-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+}
+
 #challengeOverlay:hover {
     opacity: 0.9;
 }

@@ -25,9 +25,13 @@ var loginMod = (function () {
                 this.authResult = authResult;
                 gapi.client.load('plus', 'v1', this.renderProfile);
                 $('#gDisconnect').show();
+                $('#newGame-loggedIn').show();
+                $('#newGame-notLoggedIn').hide();
             } else if (authResult['error']) {
                 // The user is not signed in.
                 $('#gConnect').show();
+                $('#newGame-loggedIn').hide();
+                $('#newGame-notLoggedIn').show();
             }
         },
 
