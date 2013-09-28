@@ -30,11 +30,13 @@ var chessboard = (function() {
         // the game is dissociated from the board and the board is overlayed with "new game" control.
         removeFocus: function() {
             this.focus = null;
-            this.boardDiv.children().children().addClass('challengemode'); // child with name 'board-b72b1'
+            this.boardDiv.children().children().addClass('challengemode');
         },
 
         focusOn: function(game) {
             this.focus = game;
+            this.boardDiv.children().children().removeClass('challengemode');
+            $('#challengeOverlay').hide();
             board.position(game.san());
             config.onDragStart = function(source) {
                 config.validMovesForPiece = game.validMovesFrom(source);
