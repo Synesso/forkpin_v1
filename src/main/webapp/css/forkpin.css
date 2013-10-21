@@ -35,11 +35,38 @@
     font-family: "Helvetica Neue","Helvetica","Arial","Kai","KaiTi",sans-serif;
 }
 
-.friendAvatar {
+/* todo - separate row and cell concerns */
+.frRw { /* friend row */
+    display: table-row;
+}
+
+.frAvCl { /* friend avatar cell */
+    display: table-cell;
+    width: 70px;
+}
+
+.frNm { /* friends name cell */
+    display: table-cell;
+    width: 100%;
+    font-family: Roboto, arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.frAv { /* friend avatar image */
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
     margin: 0.5em;
-    border: 1px #aaa solid;
-    cursor: pointer;
-    box-shadow: 2px 2px 3px rgba(0,0,0,0.2);
+}
+
+.frCh { /* friend challenge button div */
+    position: absolute;
+    right: 0;
+    padding-top: 15px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 #challengeOverlay:hover {

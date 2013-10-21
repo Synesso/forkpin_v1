@@ -7,14 +7,14 @@ div{:class => "container-fluid", :name => "games"}
     div(id="newGameModal" class="modal hide" data-show="false")
       div(class="modal-header")
         button(type="button" class="close" data-dismiss="modal" aria-hidden="true") &times;
-        h3 Challenge a friend
+        h3 Challenge friends
       div(id="newGame-notLoggedIn" class="modal-body")
         p todo - this should be the sign-in modal
       div(id="newGame-loggedIn" class="modal-body" style="hidden: true;")
-        div(id="newGame-friends" style="height: 300px;")
+        div(id="newGame-friends" style="height: 300px; display: table; table-layout: fixed; width: 100%;")
       div(class="modal-footer")
-        a(href="#" class="btn" data-dismiss="modal") Close
-        // a(href="#" class="btn btn-primary" data-dismiss="modal") Save changes
+        a(href="javascript:void(0);" class="btn" data-dismiss="modal") Close
+        a(href="javascript:void(0);" class="btn btn-primary") Challenge
   div{:class => "row-fluid"}
     div{:id => "playerPanel", :class => "offset3 span6 centering well", :style => "margin-top: 20px;"}
       div{:class => "row-fluid"}

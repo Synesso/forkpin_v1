@@ -85,6 +85,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
 
   post("/challenge") {
     authorisedJsonResponse {token =>
+      println(s"GplusId is ${params("gPlusId")}")
       val challengeOrGame = Persistent.createChallenge(user)
       Ok(reason = s"Created $challengeOrGame", body = challengeOrGame.fold(c => c, g => g.forClient))
     }

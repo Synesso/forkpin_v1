@@ -82,6 +82,13 @@ var chessboard = (function() {
         },
 
         renderPlayer: function(player) {
+            var friendHtml = function(person) {
+              return '<div class="frRw"><div class="frAvCl">' +
+                  '<img src="' + person.image.url + '" title="' + person.displayName + '" class="frAv"/>' +
+                  '</div><div class="frNm">' + person.displayName + '</div>' +
+                  '<div class="frCh"><a href="javascript:gameControls.challenge(' + person.id + ');" class="btn">Challenge</a>' +
+                  '</div></div>';
+            };
             renderProfile(player, $('#selfPanel'), true);
             $.ajax({
                 type: 'GET',
@@ -89,9 +96,7 @@ var chessboard = (function() {
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(people) {
                     for (var personIndex in people.items) {
-                     person = people.items[personIndex];
-                        $('#newGame-friends').append(
-                            '<img src="' + person.image.url + '" title="' + person.displayName + '" class="friendAvatar">');
+                        $('#newGame-friends').append(friendHtml(people.items[personIndex]));
                      }
                 },
                 error: function(e) {
@@ -125,6 +130,26 @@ var gameControls = (function () {
                 error: function (e) {
                     console.log('error loading games', e);
                 }
+            })
+        },
+
+        challenge: function(gPlusId) {
+            $.ajax({
+                type: 'POST',
+                url: window.location.origin + '/challenge',
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (games) {
+                    console.log("Games for current user:", games);
+                    if (games.length > 0) {
+                        var firstGame = game(games[0]);
+                        chessboard.focusOn(firstGame);
+                        loginMod.profile(firstGame.opponentId(), chessboard.renderOpponent);
+                    }
+                },
+                error: function (e) {
+                    console.log('error loading games', e);
+                },
+                data: {gPlusId: gPlusId}
             })
         }
     }
