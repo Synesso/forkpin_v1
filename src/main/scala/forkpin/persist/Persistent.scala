@@ -93,6 +93,12 @@ object Persistent extends Config {
     }
   }
 
+  def createChallenge(challenger: User, challenged: User): Challenge = database withSession {
+    logger.info(s"User ${challenger.gPlusId} challenges ${challenged.gPlusId}")
+    Challenges.forInsert returning Challenges insert
+      Challenge(None, challenger.gPlusId, Some(challenged.gPlusId), now)
+  }
+
   def createChallenge(user: User): Either[Challenge, Game] = database withSession {
     logger.info(s"Received open challenge from forkpin.User(${user.gPlusId})")
     val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)

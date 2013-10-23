@@ -82,12 +82,20 @@ var chessboard = (function() {
         },
 
         renderPlayer: function(player) {
-            var friendHtml = function(person) {
-              return '<div class="frRw"><div class="frAvCl">' +
-                  '<img src="' + person.image.url + '" title="' + person.displayName + '" class="frAv"/>' +
-                  '</div><div class="frNm">' + person.displayName + '</div>' +
-                  '<div class="frCh"><a href="javascript:gameControls.challenge(' + person.id + ');" class="btn">Challenge</a>' +
-                  '</div></div>';
+            var friendHtml = function(person, i) {
+                var el = $('<div class="frRw"><div class="frAvCl">' +
+                    '<img src="' + person.image.url + '" title="' + person.displayName + '" class="frAv"/>' +
+                    '</div><div class="frNm">' + person.displayName + '</div><div class="frCh">' +
+                    '<a id="frCr' + i + '" href="javascript:void(0);" class="frCr btn">Challenge</a></div></div>');
+                var link = el.find('#frCr' + i);
+                link.click(function(){
+                    gameControls.challenge(person.id, link);
+                    link.attr('disabled', true);
+                    link.text('');
+                    link.append($('<img src="img/ajax-loader.gif" height="15" width="15"/>'));
+                    link.addClass('noClicky');
+                });
+                return el;
             };
             renderProfile(player, $('#selfPanel'), true);
             $.ajax({
@@ -96,8 +104,9 @@ var chessboard = (function() {
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function(people) {
                     for (var personIndex in people.items) {
-                        $('#newGame-friends').append(friendHtml(people.items[personIndex]));
-                     }
+                        var person = people.items[personIndex];
+                        $('#newGame-friends').append(friendHtml(person, personIndex));
+                    }
                 },
                 error: function(e) {
                     console.log('error getting people list', e);
@@ -133,18 +142,23 @@ var gameControls = (function () {
             })
         },
 
-        challenge: function(gPlusId) {
+        challenge: function(gPlusId, button) {
             $.ajax({
                 type: 'POST',
                 url: window.location.origin + '/challenge',
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8',
-                success: function (games) {
-                    console.log("Games for current user:", games);
-                    if (games.length > 0) {
-                        var firstGame = game(games[0]);
+                success: function (challenge) {
+                    console.log("Challenge issued:", challenge);
+                    button.addClass('btn-success');
+                    button.text('Issued');
+/*
+// todo - this is the game creation code
+                    if (challenge.length > 0) {
+                        var firstGame = game(challenge[0]);
                         chessboard.focusOn(firstGame);
                         loginMod.profile(firstGame.opponentId(), chessboard.renderOpponent);
                     }
+*/
                 },
                 error: function (e) {
                     console.log('error loading games', e);

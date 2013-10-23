@@ -38,6 +38,7 @@
 /* todo - separate row and cell concerns */
 .frRw { /* friend row */
     display: table-row;
+    height: 64px;
 }
 
 .frAvCl { /* friend avatar cell */
@@ -67,6 +68,14 @@
     padding-top: 15px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.frCr {
+    width: 100px;
+}
+
+.noClicky {
+    pointer-events: none;
 }
 
 #challengeOverlay:hover {
