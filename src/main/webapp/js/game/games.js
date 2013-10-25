@@ -21,6 +21,56 @@ var chessboard = (function() {
         div.show('slow');
     };
 
+    var nextPageToken = '';
+
+    var friendHtml = function(person, i) {
+        var el = $('<div class="frRw"><div class="frAvCl">' +
+            '<img src="' + person.image.url + '" title="' + person.displayName + '" class="frAv"/>' +
+            '</div><div class="frNm">' + person.displayName + '</div><div class="frCh">' +
+            '<a id="frCr' + i + '" href="javascript:void(0);" class="frCr btn">Challenge</a></div></div>');
+        var link = el.find('#frCr' + i);
+        link.click(function(){
+            gameControls.challenge(person.id, link);
+            link.attr('disabled', true);
+            link.text('');
+            link.append($('<img src="img/ajax-loader.gif" height="15" width="15"/>'));
+            link.addClass('noClicky');
+        });
+        return el;
+    };
+
+    var moreFriends = function(pageToken) {
+        nextPageToken = undefined;
+        $('#moreFriendsSpinner').show();
+        console.log("requesting next page with", pageToken);
+        $.ajax({
+            type: 'GET',
+            url: window.location.origin + '/people',
+            contentType: 'application/octet-stream; charset=utf-8',
+            success: function(people) {
+                $('#moreFriendsSpinner').hide();
+                for (var personIndex in people.items) {
+                    var person = people.items[personIndex];
+                    $('#newGame-friends').append(friendHtml(person, personIndex));
+                }
+                console.log("next page is", people.nextPageToken);
+                nextPageToken = people.nextPageToken;
+            },
+            error: function(e) {
+                $('#moreFriendsSpinner').hide();
+                console.log('error getting people list', e);
+            },
+            data: {pageToken: pageToken}
+        });
+    };
+
+    $("#newGame-loggedIn").scroll(function() {
+        if ($(this)[0].scrollHeight - $(this).scrollTop() == $(this).outerHeight()) {
+            if (nextPageToken == undefined) { return; }
+            moreFriends(nextPageToken);
+        }
+    });
+
     return {
 
         focus: game,
@@ -82,36 +132,8 @@ var chessboard = (function() {
         },
 
         renderPlayer: function(player) {
-            var friendHtml = function(person, i) {
-                var el = $('<div class="frRw"><div class="frAvCl">' +
-                    '<img src="' + person.image.url + '" title="' + person.displayName + '" class="frAv"/>' +
-                    '</div><div class="frNm">' + person.displayName + '</div><div class="frCh">' +
-                    '<a id="frCr' + i + '" href="javascript:void(0);" class="frCr btn">Challenge</a></div></div>');
-                var link = el.find('#frCr' + i);
-                link.click(function(){
-                    gameControls.challenge(person.id, link);
-                    link.attr('disabled', true);
-                    link.text('');
-                    link.append($('<img src="img/ajax-loader.gif" height="15" width="15"/>'));
-                    link.addClass('noClicky');
-                });
-                return el;
-            };
             renderProfile(player, $('#selfPanel'), true);
-            $.ajax({
-                type: 'GET',
-                url: window.location.origin + '/people',
-                contentType: 'application/octet-stream; charset=utf-8',
-                success: function(people) {
-                    for (var personIndex in people.items) {
-                        var person = people.items[personIndex];
-                        $('#newGame-friends').append(friendHtml(person, personIndex));
-                    }
-                },
-                error: function(e) {
-                    console.log('error getting people list', e);
-                }
-            });
+            moreFriends('');
         },
 
         renderOpponent: function(player) { renderProfile(player, $('#opponentPanel'), false); }
@@ -168,7 +190,6 @@ var gameControls = (function () {
         }
     }
 })();
-
 
 var game = function(meta, existingEngine) {
 

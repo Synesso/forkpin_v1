@@ -8,6 +8,7 @@ import org.scalatra._
 import forkpin.web.gplus._
 import forkpin.persist.Persistent
 import com.github.synesso.eshq.Channel
+import com.google.api.services.plus.model.PeopleFeed
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
 
@@ -79,7 +80,10 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
         .setClientSecrets(clientId, clientSecret).build.setFromTokenResponse(
         jsonFactory.fromString(token.value, classOf[GoogleTokenResponse]))
       val plusService = new Plus.Builder(transport, jsonFactory, credential).setApplicationName(appName).build
-      Ok(s"${plusService.people.list("me", "visible").execute}")
+      val fields = "items(displayName,id,image,name(familyName,givenName),nickname),nextPageToken,totalItems"
+      val peopleFinder = plusService.people.list("me", "visible").setFields(fields)
+        .set("pageToken", params("pageToken")).set("orderBy", "alphabetical")
+      Ok(s"${peopleFinder.execute}")
     }
   }
 

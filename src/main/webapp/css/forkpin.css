@@ -78,6 +78,11 @@
     pointer-events: none;
 }
 
+.ctrInDiv {
+    display: block;
+    margin: auto;
+}
+
 #challengeOverlay:hover {
     opacity: 0.9;
 }
