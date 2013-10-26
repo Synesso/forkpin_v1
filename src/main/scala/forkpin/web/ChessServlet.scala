@@ -83,7 +83,8 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
       val fields = "items(displayName,id,image,name(familyName,givenName),nickname),nextPageToken,totalItems"
       val peopleFinder = plusService.people.list("me", "visible").setFields(fields)
         .set("pageToken", params("pageToken")).set("orderBy", "alphabetical")
-      Ok(s"${peopleFinder.execute}")
+      val peopleFeed = peopleFinder.execute
+      Ok(s"${peopleFeed}")
     }
   }
 

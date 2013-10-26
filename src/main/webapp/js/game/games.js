@@ -42,7 +42,6 @@ var chessboard = (function() {
     var moreFriends = function(pageToken) {
         nextPageToken = undefined;
         $('#moreFriendsSpinner').show();
-        console.log("requesting next page with", pageToken);
         $.ajax({
             type: 'GET',
             url: window.location.origin + '/people',
@@ -53,7 +52,6 @@ var chessboard = (function() {
                     var person = people.items[personIndex];
                     $('#newGame-friends').append(friendHtml(person, personIndex));
                 }
-                console.log("next page is", people.nextPageToken);
                 nextPageToken = people.nextPageToken;
             },
             error: function(e) {
