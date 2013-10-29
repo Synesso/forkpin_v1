@@ -11,7 +11,14 @@ div{:class => "container-fluid", :name => "games"}
       div(id="newGame-notLoggedIn" class="modal-body")
         p todo - this should be the sign-in modal
       div(id="newGame-loggedIn" class="modal-body" style="display: none;")
-        div(id="newGame-friends" style="height: 300px; display: table; table-layout: fixed; width: 100%;")
+        div(id="newGame-email")
+          form(name="chEmFrm" id="chEmFrm")
+            fieldset
+              legend Email Address
+              input(id="chEmTxt" type="email" name="email" required="true")
+              span(id="chEmHlp" class="help-block") Your challenge link will be sent to this email address.
+              a(id="chEmBtn" class="btn btn-primary") Challenge
+        div(id="newGame-friends" style="height: 300px; display: table; table-layout: fixed; width: 100%; display: none;")
         div(id="moreFriendsSpinner" style="display: none;")
           img(src="img/ajax-loader.gif" class="ctrInDiv")
       div(class="modal-footer")

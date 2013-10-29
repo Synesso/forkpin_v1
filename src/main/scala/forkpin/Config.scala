@@ -14,4 +14,8 @@ trait Config {
     (line(0), line.tail.mkString("="))
   }.toMap
 
+  val appName = properties("APPLICATION_NAME")
+  val clientId = properties("CLIENT_ID")
+  val clientSecret = properties("CLIENT_SECRET")
+
 }

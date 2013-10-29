@@ -8,13 +8,9 @@ import org.scalatra._
 import forkpin.web.gplus._
 import forkpin.persist.Persistent
 import com.github.synesso.eshq.Channel
-import com.google.api.services.plus.model.PeopleFeed
+import forkpin.SendMail
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
-
-  val appName = properties("APPLICATION_NAME")
-  val clientId = properties("CLIENT_ID")
-  val clientSecret = properties("CLIENT_SECRET")
 
   Persistent.create()
 
@@ -42,7 +38,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
               session.setAttribute("token", tokenResponse)
-              val user = Persistent.user(tokenInfo.getUserId)
+              val user = Persistent.userOrBuild(tokenInfo.getUserId, new PeopleService(tokenResponse.toString))
               session.setAttribute("user", user)
               Ok(reason = "Successfully connected user")
             }
@@ -66,11 +62,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
 
   get("/profile/:id") {
     authorisedJsonResponse {token =>
-      val credential = new GoogleCredential.Builder().setJsonFactory(jsonFactory).setTransport(transport)
-        .setClientSecrets(clientId, clientSecret).build.setFromTokenResponse(
-        jsonFactory.fromString(token.value, classOf[GoogleTokenResponse]))
-      val plusService = new Plus.Builder(transport, jsonFactory, credential).setApplicationName(appName).build
-      Ok(s"${plusService.people.get(params("id")).execute}")
+      Ok(s"${new PeopleService(token.value).get(params("id"))}")
     }
   }
 
@@ -84,16 +76,35 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
       val peopleFinder = plusService.people.list("me", "visible").setFields(fields)
         .set("pageToken", params("pageToken")).set("orderBy", "alphabetical")
       val peopleFeed = peopleFinder.execute
-      Ok(s"${peopleFeed}")
+      Ok(s"$peopleFeed")
     }
   }
 
-  post("/challenge") {
+  post("/challenge/email") {
     authorisedJsonResponse {token =>
-      val challenge = Persistent.createChallenge(user, Persistent.user(params("gPlusId")))
+      val email = params("email")
+      val challenge = Persistent.createChallenge(user, email)
+      SendMail.send(challenge, baseUrl)
       Ok(reason = s"Created $challenge", body = challenge)
     }
   }
+
+  get("/challenge/:id") {
+    authorisedJsonResponse {token =>
+      val challengeId = params("id").toInt
+      val key = params("key")
+      val game = Persistent.acceptChallenge(user, challengeId, key)
+      // todo - need to be logged in to create the game!?
+      Ok()
+    }
+  }
+
+//  post("/challenge") {
+//    authorisedJsonResponse {token =>
+//      val challenge = Persistent.createChallenge(user, Persistent.user(params("gPlusId")))
+//      Ok(reason = s"Created $challenge", body = challenge)
+//    }
+//  }
 
   get("/games") {
     authorisedJsonResponse {token =>

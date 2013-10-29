@@ -7,14 +7,18 @@ import scala.slick.jdbc.meta.MTable
 import scala.slick.lifted.DDL
 import forkpin.{Game, Config}
 import scala.slick.lifted.ColumnOption.DBType
+import forkpin.web.gplus.PeopleService
 
 object Persistent extends Config {
 
   val tables = Seq(Games, Users, Challenges)
 
-  case class Challenge(id: Option[Int], challengerId: String, challengedId: Option[String], created: Timestamp)
-  case class User(gPlusId: String, firstSeen: Timestamp)
+  case class Challenge(id: Option[Int], challengerId: String, email: String, key: String, created: Timestamp) {
+    lazy val challenger = user(challengerId).get
+  }
+  case class User(gPlusId: String, displayName: String, firstSeen: Timestamp)
   case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
+  case class ChallengeAcceptFailure(reason: String)
   object GameRow {
     def buildFrom(game: Game) = GameRow(Some(game.id), game.white.gPlusId, game.black.gPlusId,
       game.moves.map(m => s"${m.from}${m.to}").mkString)
@@ -22,8 +26,9 @@ object Persistent extends Config {
 
   object Users extends Table[User]("users") {
     def gPlusId = column[String]("gplus_id", O.PrimaryKey)
+    def displayName = column[String]("display_name")
     def firstSeen = column[Timestamp]("first_login")
-    def * = gPlusId ~ firstSeen <> (User, User.unapply _)
+    def * = gPlusId ~ displayName ~ firstSeen <> (User, User.unapply _)
   }
 
   object Games extends Table[GameRow]("games") {
@@ -42,14 +47,14 @@ object Persistent extends Config {
   object Challenges extends Table[Challenge]("challenges") {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def challengerId = column[String]("challenger_id")
-    def challengedId = column[Option[String]]("challenged_id")
+    def email = column[String]("email")
+    def key = column[String]("key")
     def created = column[Timestamp]("created")
-    def * = id.? ~ challengerId ~ challengedId ~ created <> (Challenge, Challenge.unapply _)
+    def * = id.? ~ challengerId ~ email ~ key ~ created <> (Challenge, Challenge.unapply _)
     def challenger = foreignKey("challenger_fk", challengerId, Users)(_.gPlusId)
-    def challenged = foreignKey("challenged_fk", challengedId, Users)(_.gPlusId)
-    def forInsert = challengerId ~ challengedId ~ created <> (
-      {t => Challenge(None, t._1, t._2, now)},
-      {c: Challenge => Some((c.challengerId, c.challengedId, now))})
+    def forInsert = challengerId ~ email ~ key ~ created <> (
+      {t => Challenge(None, t._1, t._2, t._3, now)},
+      {c: Challenge => Some((c.challengerId, c.email, c.key, now))})
   }
 
   val database: Database = {
@@ -77,39 +82,61 @@ object Persistent extends Config {
         }
       }
       ddl.foreach{_.create}
-      Users.insert(User("100", now))
-      (1 to 10).foreach { _ =>
-        Challenges.forInsert insert Challenge(None, "100", None, now)
-      }
     }
   }
 
   def user(gPlusId: String) = database withSession {
     val userQuery = Query(Users).filter(_.gPlusId === gPlusId)
-    userQuery.firstOption.getOrElse{
-      val u = User(gPlusId, now)
+    userQuery.firstOption
+  }
+
+  // todo - rather than use the people service twice, can we cache result?
+  def userOrBuild(gPlusId: String, peopleService: PeopleService) = database withSession {
+    user(gPlusId).getOrElse{
+      val person = peopleService.get(gPlusId)
+      val u = User(gPlusId, person.getDisplayName, now)
       Users.insert(u)
       u
     }
   }
 
-  def createChallenge(challenger: User, challenged: User): Challenge = database withSession {
-    logger.info(s"User ${challenger.gPlusId} challenges ${challenged.gPlusId}")
+  def createChallenge(challenger: User, email: String): Challenge = database withSession {
+    logger.info(s"User ${challenger.gPlusId} challenges player at $email")
+    val uuid = java.util.UUID.randomUUID().toString
     Challenges.forInsert returning Challenges insert
-      Challenge(None, challenger.gPlusId, Some(challenged.gPlusId), now)
+      Challenge(None, challenger.gPlusId, email, uuid, now)
   }
 
-  def createChallenge(user: User): Either[Challenge, Game] = database withSession {
-    logger.info(s"Received open challenge from forkpin.User(${user.gPlusId})")
-    val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)
-    challengeQuery.firstOption.map{c =>
-      Query(Challenges).filter(_.id === c.id).delete
-      val gameRow = Games.forInsert returning Games insert GameRow(None, user.gPlusId, c.challengerId)
-      Right(Game.buildFrom(gameRow)) // todo - randomise white/black
-    }.getOrElse{
-      Left(Challenges.forInsert returning Challenges insert Challenge(None, user.gPlusId, None, now))
-    }
+  def acceptChallenge(challenged: User, challengeId: Int, key: String): Either[ChallengeAcceptFailure, Game] =
+    database withSession {
+      // todo - don't let someone accept a challenge if they created it.
+    logger.info(s"User ${challenged.displayName} accepted challenge $challengeId")
+    Query(Challenges).filter(_.id === challengeId).firstOption.map{c =>
+      if (c.key == key) {
+        logger.info("key matched, deleting challenge and creating game")
+        Query(Challenges).filter(_.id === c.id).delete
+        val gameRow = Games.forInsert returning Games insert GameRow(None, challenged.gPlusId, c.challengerId)
+        Right(Game.buildFrom(gameRow))
+      } else {
+        logger.info("key did not match")
+        Left(ChallengeAcceptFailure("provided key did not match"))
+     }
+    }.getOrElse(Left(ChallengeAcceptFailure(s"challenge $challengeId does not exist")))
   }
+
+  /*
+    def createChallenge(user: User): Either[Challenge, Game] = database withSession {
+      logger.info(s"Received open challenge from forkpin.User(${user.gPlusId})")
+      val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)
+      challengeQuery.firstOption.map{c =>
+        Query(Challenges).filter(_.id === c.id).delete
+        val gameRow = Games.forInsert returning Games insert GameRow(None, user.gPlusId, c.challengerId)
+        Right(Game.buildFrom(gameRow)) // todo - randomise white/black
+      }.getOrElse{
+        Left(Challenges.forInsert returning Challenges insert Challenge(None, user.gPlusId, None, now))
+      }
+    }
+  */
 
   def games(user: User): Seq[Game] = database withSession {
     val gameRows = Query(Games).filter{g => g.blackId === user.gPlusId || g.whiteId === user.gPlusId}

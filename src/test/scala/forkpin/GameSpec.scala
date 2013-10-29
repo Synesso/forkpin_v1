@@ -6,7 +6,7 @@ import org.specs2.{ScalaCheck, Specification}
 import RankAndFile._
 import org.scalacheck.{Arbitrary, Gen}
 
-class GameSpec extends Specification with ScalaCheck { def is = s2"""
+class GameSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
 
   A new game must
     have a starting position san $startPositionSan
@@ -20,8 +20,6 @@ class GameSpec extends Specification with ScalaCheck { def is = s2"""
 
 """
 
-  val black = User("black", null)
-  val white = User("white", null)
   val aNewGame = Game(1, white, black)
 
   def startPositionSan = aNewGame.san must_== "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"

@@ -30,13 +30,15 @@ libraryDependencies ++= Seq(
   "com.google.apis" % "google-api-services-oauth2" % "v2-rev51-1.17.0-rc",
   "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta",
   "com.github.synesso" %% "eshq" % "0.1",
+  "me.lessis" %% "courier" % "0.1.2",
   "org.specs2" %% "specs2" % "2.2" % "test",
   "org.scalacheck" %% "scalacheck" % "1.10.0" % "test"
 )
 
 resolvers ++= Seq(
   "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/",
-  "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+  "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
+  "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 )
 
 seq(SbtStartScript.startScriptForClassesSettings: _*)

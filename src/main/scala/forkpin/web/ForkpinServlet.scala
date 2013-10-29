@@ -48,4 +48,11 @@ abstract class ForkpinServlet extends ScalatraServlet with ScalateSupport with J
     EventSourceClient(Key(key), Secret(secret), new URL(serviceURL))
   }
 
+  lazy val baseUrl = {
+    val url = request.getRequestURL
+    val uri = request.getRequestURI
+    val ctx = request.getContextPath
+    url.substring(0, url.length - uri.length + ctx.length) + "/"
+  }
+
 }

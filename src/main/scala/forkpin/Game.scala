@@ -95,7 +95,7 @@ object Game {
   }
 
   def buildFrom(row: GameRow): Game = {
-    val startGame = Game(row.id.get, user(row.whiteId), user(row.blackId))
+    val startGame = Game(row.id.get, user(row.whiteId).get, user(row.blackId).get)
     row.moves.grouped(4).map{str: String =>
       val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
       (rfs.head, rfs.tail.head)

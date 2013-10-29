@@ -75,7 +75,8 @@ var loginMod = (function () {
 
         connectServer: function (profile) {
             var gplusId = profile.id;
-            var url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId;
+            var url = window.location.origin + '/connect?state=' + gplusOneTimeToken + '&gplus_id=' + gplusId
+                + '&name=' + profile.displayName;
             console.log('connectServer -> ', url);
             $.ajax({
                 type: 'POST',

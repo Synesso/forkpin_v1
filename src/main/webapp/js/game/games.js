@@ -69,6 +69,43 @@ var chessboard = (function() {
         }
     });
 
+    $('#chEmBtn').click(function() {
+        var form = document.forms['chEmFrm'];
+        var emailAddress = $("#chEmTxt").val();
+        if (form.elements['email'].checkValidity()) {
+            $('#chEmBtn').attr('disabled', true).addClass('noClicky');
+            $.ajax({
+                type: 'POST',
+                url: window.location.origin + '/challenge/email',
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                success: function (result) {
+                    $('#chEmHlp').text('Challenged ' + emailAddress + '. Challenge someone else?');
+                    $("#chEmTxt").val('');
+                    $('#chEmBtn').attr('disabled', false).removeClass('noClicky');
+                    console.log('ok issuing email challenge to', emailAddress, result);
+                },
+                error: function (e) {
+                    $('#chEmHlp').text('Error challenging ' + emailAddress + '. Sorry!');
+                    $('#chEmBtn').attr('disabled', false).removeClass('noClicky');
+                    console.error('error challenging user', emailAddress, e.responseText, e);
+                },
+                always: function () {
+                },
+                data: $('#chEmFrm').serialize()
+            });
+        } else {
+            console.log("todo - how to show field is not valid?");
+        }
+    });
+
+    $('#chEmTxt').keypress(function (event) {
+        if (event.which == 13) {
+            $("#chEmBtn").click();
+            return false;
+        }
+        return true;
+    });
+
     return {
 
         focus: game,
@@ -131,7 +168,7 @@ var chessboard = (function() {
 
         renderPlayer: function(player) {
             renderProfile(player, $('#selfPanel'), true);
-            moreFriends('');
+            // moreFriends(''); // this loads people followed from g+.
         },
 
         renderOpponent: function(player) { renderProfile(player, $('#opponentPanel'), false); }
