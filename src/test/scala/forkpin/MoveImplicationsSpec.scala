@@ -3,6 +3,8 @@ package forkpin
 import org.specs2.Specification
 import RankAndFile._
 import org.specs2.matcher.MatchResult
+import scala.language.reflectiveCalls
+
 
 class MoveImplicationsSpec extends Specification with TestImplicits { def is = s2"""
 

@@ -176,8 +176,6 @@ var chessboard = (function() {
 
 })();
 
-chessboard.removeFocus();
-
 var gameControls = (function () {
     return {
         loadGamesForUser: function () {
@@ -197,6 +195,20 @@ var gameControls = (function () {
                     console.log('error loading games', e);
                 }
             })
+        },
+
+        loadChallenge: function(id, key) {
+            $.ajax({
+                type: 'GET',
+                url: window.location.origin + '/challenge/' + id,
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function (challenge) {
+                    console.log(challenge);
+                }, error: function (e) {
+                    console.error(e);
+                },
+                data: {key: key}
+            });
         },
 
         challenge: function(gPlusId, button) {
@@ -226,6 +238,14 @@ var gameControls = (function () {
     }
 })();
 
+/* returns an object that encapsulates:
+   1. a chess.js game instance,
+   2. an eshq channel
+   3. some additional functions
+
+   meta is structured as per Game.scala#forClient
+   existingEngine is the chess.js game instance. If not present a new one in created.
+*/
 var game = function(meta, existingEngine) {
 
     var engine = existingEngine || (function() {
@@ -292,3 +312,26 @@ var game = function(meta, existingEngine) {
 
     };
 };
+
+
+$(document).ready(function () {
+    chessboard.removeFocus();
+    if (displayAction.view === "game") {
+        console.log("game", displayAction.id);
+    } else if (displayAction.view === "challenge") {
+        gameControls.loadChallenge(displayAction.id, displayAction.key);
+        // focus on a new game
+        // load opponent icon
+        // load user icon when google responds with logged in
+        // load ?? user icon when google responds with not logged in
+        // show accept/decline buttons
+    } else {
+        console.log("anything!");
+    }
+});
+
+
+// todo - when the page loads, check the 'display' var and render the right thing
+// * challenge - show challenge board and wait for login code
+// * game - show the game board and wait for login code
+// * all_games - ?

@@ -9,6 +9,7 @@ import forkpin.web.gplus._
 import forkpin.persist.Persistent
 import com.github.synesso.eshq.Channel
 import forkpin.SendMail
+import org.json4s.JsonDSL._
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
 
@@ -18,11 +19,18 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     contentType="text/html"
     val state = new BigInteger(130, new SecureRandom).toString(32)
     session.setAttribute("state", state)
+    val display = (params.get("game"), params.get("challenge"), params.get("key")) match {
+      case (Some(gameId), _, _) => render(("view" -> "game") ~ ("id" -> gameId))
+      case (_, Some(c), Some(k)) => render(("view" -> "challenge") ~ ("id" -> c) ~ ("key" -> k))
+      case _ => render("view" -> "all_games")
+    }
+
     jade("index",
       "state" -> state,
       "clientId" -> clientId,
       "pageTitle" -> "chess wip",
-      "appName" -> appName)
+      "appName" -> appName,
+      "display" -> compact(display))
   }
 
   post("/connect") {
@@ -90,12 +98,11 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   }
 
   get("/challenge/:id") {
-    authorisedJsonResponse {token =>
+    jsonResponse {
       val challengeId = params("id").toInt
       val key = params("key")
-      val game = Persistent.acceptChallenge(user, challengeId, key)
-      // todo - need to be logged in to create the game!?
-      Ok()
+      Persistent.challenge(challengeId, key).map{c => Ok(reason = "we got one!!", body = s"${c.forClient}")}
+        .getOrElse(NotFound(reason = "Challenge/key combination not found", body = s"{challenge: $challengeId, key: $key}"))
     }
   }
 

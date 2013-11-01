@@ -15,6 +15,7 @@ object Persistent extends Config {
 
   case class Challenge(id: Option[Int], challengerId: String, email: String, key: String, created: Timestamp) {
     lazy val challenger = user(challengerId).get
+    lazy val forClient: Map[String, Any] = id.map(i => Map("id" -> i, "challenger" -> challengerId)).getOrElse(Map.empty)
   }
   case class User(gPlusId: String, displayName: String, firstSeen: Timestamp)
   case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
@@ -98,6 +99,11 @@ object Persistent extends Config {
       Users.insert(u)
       u
     }
+  }
+
+  def challenge(challengeId: Int, key: String): Option[Challenge] = database withSession {
+    logger.debug(s"Looking for challenge with id $challengeId and key $key")
+    Query(Challenges).filter(_.id === challengeId).filter(_.key === key).firstOption
   }
 
   def createChallenge(challenger: User, email: String): Challenge = database withSession {

@@ -1,3 +1,7 @@
+-@ val display: String
+
+:!javascript
+  var displayAction = JSON.parse('#{display}');
 div{:class => "container-fluid", :name => "games"}
   div{:class => "row-fluid"}
     div{:id => "chessboard"}
@@ -7,20 +11,12 @@ div{:class => "container-fluid", :name => "games"}
     div(id="newGameModal" class="modal hide" data-show="false")
       div(class="modal-header")
         button(type="button" class="close" data-dismiss="modal" aria-hidden="true") &times;
-        h3 Challenge friends
-      div(id="newGame-notLoggedIn" class="modal-body")
-        p todo - this should be the sign-in modal
+        h3(id="newGameModalHeader")
+      - include("new_game_modal-login.jade")
       div(id="newGame-loggedIn" class="modal-body" style="display: none;")
-        div(id="newGame-email")
-          form(name="chEmFrm" id="chEmFrm")
-            fieldset
-              legend Email Address
-              input(id="chEmTxt" type="email" name="email" required="true")
-              span(id="chEmHlp" class="help-block") Your challenge link will be sent to this email address.
-              a(id="chEmBtn" class="btn btn-primary") Challenge
-        div(id="newGame-friends" style="height: 300px; display: table; table-layout: fixed; width: 100%; display: none;")
-        div(id="moreFriendsSpinner" style="display: none;")
-          img(src="img/ajax-loader.gif" class="ctrInDiv")
+        - include("new_game_modal-challenged.jade")
+        - include("new_game_modal-email.jade")
+        - include("new_game_modal-friends.jade")
       div(class="modal-footer")
         a(href="javascript:void(0);" class="btn" data-dismiss="modal") Close
   div{:class => "row-fluid"}
