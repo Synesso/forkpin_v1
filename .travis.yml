@@ -7,7 +7,7 @@ jdk:
 deploy:
   provider: heroku
   api_key:
-    secure: DL0YopU/ahty8Jw1b243q6AIFuIAPcseOx5OoP3FrjM7htfiWr1MrL0dyulgkfJhw7L1HMeUB3GUWwIezafZiJIiub45gaWue7JlIxxFOM4RTjpYo+5BMEdphtu3+GhHBRazo3udUteMQ2sMsPZSIPFvKLOsppu8g3JR99Cp5+A=
-  app: Chess
+    secure: S/K2e16/qBjSUCmuX18zA8OeC3VECX22IRcrybZrxMDkFb6m/OQ/s3wyVc0iDSwMsMT1AlH0unPbAjA3WmKf4eG0pi5H9YdVcHjTepejUba0B2tpvJ5OD6weyp4Iaq2M2vepW2yRt/XUNmf4LSd9lV5f96HutvlmSDGpdykNoJ4=
+  app: sheltered-brushlands-1468
   on:
     repo: Synesso/forkpin
