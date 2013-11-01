@@ -7,7 +7,7 @@ jdk:
 deploy:
   provider: heroku
   api_key:
-    secure: AVTj58Z8jvVyH9aTfmgJuW5YILqtH5jy8nyzk6xlY322C7n05Dv8gNN2quWYrHhT15JPDIUK7j1/kSVU36mJ3ZZYP+0DpUUBGTlHwcc6ju3cJRy8zLq/mineHxcNuQT3adC9tg5kDV/xKJmKkAR0SGy9pI13PDEge3rFAtf5NV8=
-  app: forkpin
+    secure: DL0YopU/ahty8Jw1b243q6AIFuIAPcseOx5OoP3FrjM7htfiWr1MrL0dyulgkfJhw7L1HMeUB3GUWwIezafZiJIiub45gaWue7JlIxxFOM4RTjpYo+5BMEdphtu3+GhHBRazo3udUteMQ2sMsPZSIPFvKLOsppu8g3JR99Cp5+A=
+  app: Chess
   on:
     repo: Synesso/forkpin
