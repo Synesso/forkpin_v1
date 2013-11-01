@@ -1,6 +1,13 @@
 language: scala
 scala:
-  - 2.10.1
+- 2.10.1
 jdk:
-  - oraclejdk7
-  - openjdk7
+- oraclejdk7
+- openjdk7
+deploy:
+  provider: heroku
+  api_key:
+    secure: AVTj58Z8jvVyH9aTfmgJuW5YILqtH5jy8nyzk6xlY322C7n05Dv8gNN2quWYrHhT15JPDIUK7j1/kSVU36mJ3ZZYP+0DpUUBGTlHwcc6ju3cJRy8zLq/mineHxcNuQT3adC9tg5kDV/xKJmKkAR0SGy9pI13PDEge3rFAtf5NV8=
+  app: forkpin
+  on:
+    repo: Synesso/forkpin
