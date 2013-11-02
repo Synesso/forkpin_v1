@@ -11,3 +11,4 @@ deploy:
   app: sheltered-brushlands-1468
   on:
     repo: Synesso/forkpin
+    condition: "$jdk = oraclejdk7"
