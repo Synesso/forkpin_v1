@@ -1,3 +1,5 @@
+/* An object that represents the chess board and player profile bar on the page.
+   It can focus on a particular game, or show the challenge button, or a splash screen. */
 var chessboard = (function() {
 
     var config = {
@@ -30,7 +32,7 @@ var chessboard = (function() {
             '<a id="frCr' + i + '" href="javascript:void(0);" class="frCr btn">Challenge</a></div></div>');
         var link = el.find('#frCr' + i);
         link.click(function(){
-            gameControls.challenge(person.id, link);
+            gameControls.issueChallenge(person.id, link);
             link.attr('disabled', true);
             link.text('');
             link.append($('<img src="img/ajax-loader.gif" height="15" width="15"/>'));
@@ -176,6 +178,8 @@ var chessboard = (function() {
 
 })();
 
+/* An collection of functions that fetch information from the server (and other resources) and
+   triggers events on the chessboard object as a result. */
 var gameControls = (function () {
     return {
         loadGamesForUser: function () {
@@ -203,15 +207,35 @@ var gameControls = (function () {
                 url: window.location.origin + '/challenge/' + id,
                 contentType: 'application/octet-stream; charset=utf-8',
                 success: function (challenge) {
-                    console.log(challenge);
+                    /* Accept the challenge presented in the modal box #acceptChallengeModal */
+                    $("#accChYes").click(function() {
+                        /* todo - disable the button */
+                        $.ajax({
+                            type: 'POST',
+                            url: window.location.origin + '/challenge/accept',
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                            success: function(accepted) {
+                                console.log(accepted);
+                                /* todo - get rid of the modal - maybe a message> */
+                                /* todo - ask user to log in to see the game */
+                            },
+                            error: function(e) {
+                                console.log('error accepting challenge', e);
+                            },
+                            data: {key: key, id: id}
+                        });
+                    });
+                    $('#challengerProfilePic').attr("src", challenge.challenger.profilePictureUrl);
+                    $('#challengerName').append(challenge.challenger.displayName);
+                    $('#acceptChallengeModal').modal('show');
                 }, error: function (e) {
-                    console.error(e);
+                    console.error('Unable to load challenge', id, e);
                 },
                 data: {key: key}
             });
         },
 
-        challenge: function(gPlusId, button) {
+        issueChallenge: function(gPlusId, button) {
             $.ajax({
                 type: 'POST',
                 url: window.location.origin + '/challenge',

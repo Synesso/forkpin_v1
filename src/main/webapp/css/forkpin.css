@@ -24,6 +24,11 @@
     transition: all 200ms ease;
 }
 
+.waitButtonImage {
+    width: 15px;
+    height: 15px;
+}
+
 .newGameIcon {
     vertical-align: middle;
     display: block;

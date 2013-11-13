@@ -10,6 +10,7 @@ import forkpin.persist.Persistent
 import com.github.synesso.eshq.Channel
 import forkpin.SendMail
 import org.json4s.JsonDSL._
+import forkpin.web.actions.{AcceptChallenge, OnLoginAction}
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
 
@@ -34,7 +35,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   }
 
   post("/connect") {
-    authorisedJsonResponse(_ => Ok(reason = "Current user is already connected"),
+    authorisedJsonResponse((_, _) => Ok(reason = "Current user is already connected"),
       if (!params.get("state").equals(session.get("state"))) Unauthorized(reason = "Invalid state parameter")
       else {
         tokenInfoFor(request).fold({
@@ -45,9 +46,9 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
             else if (!request.getParameter("gplus_id").equals(tokenInfo.getUserId)) Unauthorized(reason = "Token's user ID doesn't match given user ID")
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
-              session.setAttribute("token", tokenResponse)
               val user = Persistent.userOrBuild(tokenInfo.getUserId, new PeopleService(tokenResponse.toString))
               session.setAttribute("user", user)
+              session.setAttribute("token", tokenResponse)
               Ok(reason = "Successfully connected user")
             }
         })
@@ -56,7 +57,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   }
 
   post("/disconnect") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       revoke(token, request).fold({
         exception => InternalServerError(reason = s"Failed to read token data from Google: ${exception.getMessage}")
       }, {
@@ -69,13 +70,13 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   }
 
   get("/profile/:id") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       Ok(s"${new PeopleService(token.value).get(params("id"))}")
     }
   }
 
   get("/people") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       val credential = new GoogleCredential.Builder().setJsonFactory(jsonFactory).setTransport(transport)
         .setClientSecrets(clientId, clientSecret).build.setFromTokenResponse(
         jsonFactory.fromString(token.value, classOf[GoogleTokenResponse]))
@@ -89,7 +90,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   }
 
   post("/challenge/email") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       val email = params("email")
       val challenge = Persistent.createChallenge(user, email)
       SendMail.send(challenge, baseUrl)
@@ -97,31 +98,43 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     }
   }
 
+  post("/challenge/accept") {
+    val challengeId = params("id").toInt
+    val key = params("key")
+    authorisedJsonResponse({(token, user) =>
+      Persistent.acceptChallenge(user, challengeId, key).fold({ failure =>
+        Forbidden(reason = failure.reason)
+      }, { game =>
+        Ok(Map("action" -> "gameCreated", "game" -> game.forClient))
+      })
+    }, {
+      val actions = session.getOrElse("OnLoginActions", Set.empty[OnLoginAction]).asInstanceOf[Set[OnLoginAction]]
+      session.put("OnLoginActions", actions + AcceptChallenge(challengeId, key))
+      Ok(Map("action" -> "onLoginActionCreated"))
+    })
+  }
+
   get("/challenge/:id") {
     jsonResponse {
       val challengeId = params("id").toInt
       val key = params("key")
-      Persistent.challenge(challengeId, key).map{c => Ok(reason = "we got one!!", body = s"${c.forClient}")}
-        .getOrElse(NotFound(reason = "Challenge/key combination not found", body = s"{challenge: $challengeId, key: $key}"))
+      Persistent.challenge(challengeId, key).map{c =>
+        Ok(c.forClient)
+      }.getOrElse(
+        NotFound(reason = "Challenge/key combination not found", body = Map("challenge" -> challengeId, "key" -> key))
+      )
     }
   }
 
-//  post("/challenge") {
-//    authorisedJsonResponse {token =>
-//      val challenge = Persistent.createChallenge(user, Persistent.user(params("gPlusId")))
-//      Ok(reason = s"Created $challenge", body = challenge)
-//    }
-//  }
-
   get("/games") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       val games = Persistent.games(user)
       Ok(reason = s"Retrieved games for $user", body = games.map(_.forClient))
     }
   }
 
   post("/move") {
-    authorisedJsonResponse {token =>
+    authorisedJsonResponse {(token, user) =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
       Persistent.game(gameId.toInt).map{game =>
         game.move(from, to).fold(

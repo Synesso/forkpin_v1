@@ -6,7 +6,7 @@ import forkpin.Config
 import com.google.api.services.plus.model.Person
 
 class PeopleService(token: String) extends GPlusOperations with Config {
-  
+
   def get(id: String): Person = {
     val credential = new GoogleCredential.Builder().setJsonFactory(jsonFactory).setTransport(transport)
       .setClientSecrets(clientId, clientSecret).build.setFromTokenResponse(

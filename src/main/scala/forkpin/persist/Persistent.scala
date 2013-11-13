@@ -15,9 +15,15 @@ object Persistent extends Config {
 
   case class Challenge(id: Option[Int], challengerId: String, email: String, key: String, created: Timestamp) {
     lazy val challenger = user(challengerId).get
-    lazy val forClient: Map[String, Any] = id.map(i => Map("id" -> i, "challenger" -> challengerId)).getOrElse(Map.empty)
+    lazy val forClient: Map[String, Any] = id.map(i =>
+      Map("id" -> i, "challenger" -> challenger.forClient)
+    ).getOrElse(Map.empty)
   }
-  case class User(gPlusId: String, displayName: String, firstSeen: Timestamp)
+  case class User(gPlusId: String, displayName: String, firstSeen: Timestamp) {
+    lazy val profilePictureUrl = s"https://www.google.com/s2/photos/profile/$gPlusId?sz=50"
+    lazy val forClient: Map[String, Any] = Map("gPlusId" -> gPlusId, "displayName" -> displayName,
+      "profilePictureUrl" -> profilePictureUrl)
+  }
   case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
   case class ChallengeAcceptFailure(reason: String)
   object GameRow {

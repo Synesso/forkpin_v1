@@ -30,15 +30,15 @@ abstract class ForkpinServlet extends ScalatraServlet with ScalateSupport with J
   def token = session.get("token")
   def user = session("user").asInstanceOf[User]
 
-  def authorisedJsonResponse(result: (Token) => ActionResult): ActionResult = {
+  def authorisedJsonResponse(result: (Token, User) => ActionResult): ActionResult = {
     authorisedJsonResponse(result, Unauthorized("Current user is not connected."))
   }
 
-  def authorisedJsonResponse(result: (Token) => ActionResult, orElse: => ActionResult): ActionResult = {
-    jsonResponse(token.map{t => result(Token(s"$t"))}.getOrElse(orElse))
+  def authorisedJsonResponse(result: (Token, User) => ActionResult, orElse: => ActionResult): ActionResult = {
+    jsonResponse(token.map{t => result(Token(s"$t"), user)}.getOrElse(orElse))
   }
 
-  def jsonResponse(result: => ActionResult) = {
+  def jsonResponse(result: => ActionResult): ActionResult = {
     contentType = formats("json")
     result
   }
