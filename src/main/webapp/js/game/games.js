@@ -114,6 +114,12 @@ var chessboard = (function() {
 
         boardDiv: $('#chessboard'),
 
+        alert: function(heading, message) {
+            $('#alertModalHeader').empty().text(heading);
+            $('#alertModalBody').empty().text(message);
+            $('#alertModal').modal('show');
+        },
+
         // the game is dissociated from the board and the board is overlayed with "new game" control.
         removeFocus: function() {
             this.focus = null;
@@ -181,6 +187,15 @@ var chessboard = (function() {
 /* An collection of functions that fetch information from the server (and other resources) and
    triggers events on the chessboard object as a result. */
 var gameControls = (function () {
+
+    var waitModeOn = function(button) {
+        button.attr('disabled', true).addClass("noClicky");
+    };
+
+    var waitModeOff = function(button) {
+        button.attr('disabled', false).removeClass("noClicky");
+    };
+
     return {
         loadGamesForUser: function () {
             //noinspection JSUnusedGlobalSymbols
@@ -209,15 +224,20 @@ var gameControls = (function () {
                 success: function (challenge) {
                     /* Accept the challenge presented in the modal box #acceptChallengeModal */
                     $("#accChYes").click(function() {
-                        /* todo - disable the button */
+                        waitModeOn($("#accChYes"));
                         $.ajax({
                             type: 'POST',
                             url: window.location.origin + '/challenge/accept',
                             contentType: 'application/x-www-form-urlencoded; charset=utf-8',
                             success: function(accepted) {
-                                console.log(accepted);
-                                /* todo - get rid of the modal - maybe a message> */
-                                /* todo - ask user to log in to see the game */
+                                console.log('accepted challenge', accepted);
+                                waitModeOff($("#accChYes"));
+                                $('#acceptChallengeModal').modal('hide');
+                                if (accepted.action === 'onLoginActionCreated') {
+                                    chessboard.alert("Success!", "Now log in to see your game.");
+                                } else {
+                                    chessboard.focusOn(accepted.game);
+                                }
                             },
                             error: function(e) {
                                 console.log('error accepting challenge', e);
@@ -244,14 +264,6 @@ var gameControls = (function () {
                     console.log("Challenge issued:", challenge);
                     button.addClass('btn-success');
                     button.text('Issued');
-/*
-// todo - this is the game creation code
-                    if (challenge.length > 0) {
-                        var firstGame = game(challenge[0]);
-                        chessboard.focusOn(firstGame);
-                        loginMod.profile(firstGame.opponentId(), chessboard.renderOpponent);
-                    }
-*/
                 },
                 error: function (e) {
                     console.log('error loading games', e);
