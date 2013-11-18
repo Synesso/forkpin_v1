@@ -1,6 +1,28 @@
 
+#chessboards {
+    display: table;
+    margin: 0 auto;
+    position: relative;
+}
+
 #chessboard {
-    display: table; margin: 0 auto; height: 420px; width: 420px;
+    height: 420px; width: 420px;
+}
+
+.navileft {
+    display: table-cell;
+    position: absolute;
+    top: 0;
+    margin-top: 200px;
+    left: -80px; /* todo - include the div's width */
+}
+
+.naviright {
+    display: table-cell;
+    position: absolute;
+    top: 0;
+    margin-top: 200px;
+    left: 480px; /* todo - include the div's width */
 }
 
 #challengeOverlay {

@@ -184,7 +184,7 @@ var chessboard = (function() {
 
 })();
 
-/* An collection of functions that fetch information from the server (and other resources) and
+/* A collection of functions that fetch information from the server (and other resources) and
    triggers events on the chessboard object as a result. */
 var gameControls = (function () {
 
@@ -349,25 +349,10 @@ var game = function(meta, existingEngine) {
     };
 };
 
-
 $(document).ready(function () {
-    chessboard.removeFocus();
     if (displayAction.view === "game") {
         console.log("game", displayAction.id);
     } else if (displayAction.view === "challenge") {
         gameControls.loadChallenge(displayAction.id, displayAction.key);
-        // focus on a new game
-        // load opponent icon
-        // load user icon when google responds with logged in
-        // load ?? user icon when google responds with not logged in
-        // show accept/decline buttons
-    } else {
-        console.log("anything!");
     }
 });
-
-
-// todo - when the page loads, check the 'display' var and render the right thing
-// * challenge - show challenge board and wait for login code
-// * game - show the game board and wait for login code
-// * all_games - ?
