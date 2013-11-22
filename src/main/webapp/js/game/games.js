@@ -124,57 +124,64 @@ var chessboard = (function() {
         removeFocus: function() {
             this.focus = null;
             this.boardDiv.children().children().addClass('challengemode');
+            board.clear(true);
         },
 
         focusOn: function(games) {
             // todo - show the new game overlay if beyond the limit of the games
             var game = games.current();
-            loginMod.profile(game.opponentId(), chessboard.renderOpponent);
-            this.focus = game;
-            this.boardDiv.children().children().removeClass('challengemode');
-            $('#challengeOverlay').hide();
-            board.position(game.san());
-            config.onDragStart = function(source) {
-                config.validMovesForPiece = game.validMovesFrom(source);
-                return config.validMovesForPiece.length > 0;
-            };
-            config.onDrop = function(from, to) {
-                var result = game.move({from: from, to: to});
-                if (result != null) {
-                    console.log("This user moved. Next player is ", game.engine.turn());
-                    //noinspection JSUnusedGlobalSymbols
-                    $.ajax({
-                        type: 'POST',
-                        url: window.location.origin + '/move',
-                        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
-                        success: function (result) {
-                            console.log('ok posting move', result);
-                        },
-                        error: function (e) {
-                            // todo - here the client has moved, but server doesn't know. rollback/report.
-                            console.log('error posting move', e.responseText);
-                        },
-                        data: {gameId: game.id, from: from.toUpperCase(), to: to.toUpperCase()}
-                    });
-                    return false;
-                }
-                return 'snapback';
-            };
-            config.onSnapEnd = function () {
-                if (game.fen !== game.san()) {
-                    board.position(game.san());
-                }
-            };
+            if (game === "showNewGameOverlay") {
+                console.log("Showing the new game overlay");
+                this.removeFocus();
+                $('#challengeOverlay').show();
+            } else {
+                loginMod.profile(game.opponentId(), chessboard.renderOpponent);
+                this.focus = game;
+                this.boardDiv.children().children().removeClass('challengemode');
+                $('#challengeOverlay').hide();
+                board.position(game.san());
+                config.onDragStart = function(source) {
+                    config.validMovesForPiece = game.validMovesFrom(source);
+                    return config.validMovesForPiece.length > 0;
+                };
+                config.onDrop = function(from, to) {
+                    var result = game.move({from: from, to: to});
+                    if (result != null) {
+                        console.log("This user moved. Next player is ", game.engine.turn());
+                        //noinspection JSUnusedGlobalSymbols
+                        $.ajax({
+                            type: 'POST',
+                            url: window.location.origin + '/move',
+                            contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+                            success: function (result) {
+                                console.log('ok posting move', result);
+                            },
+                            error: function (e) {
+                                // todo - here the client has moved, but server doesn't know. rollback/report.
+                                console.log('error posting move', e.responseText);
+                            },
+                            data: {gameId: game.id, from: from.toUpperCase(), to: to.toUpperCase()}
+                        });
+                        return false;
+                    }
+                    return 'snapback';
+                };
+                config.onSnapEnd = function () {
+                    if (game.fen !== game.san()) {
+                        board.position(game.san());
+                    }
+                };
+            }
             var self = this;
             if (games.hasPrevious()) {
-                $('#chessboard-prev').show().click(function() {self.focusOn(games.previous())});
+                $('#chessboard-prev').fadeIn().click(function() {self.focusOn(games.previous())});
             } else {
-                $('#chessboard-prev').hide();
+                $('#chessboard-prev').fadeOut();
             }
             if (games.hasNext()) {
-                $('#chessboard-next').show().click(function() {self.focusOn(games.next())});
+                $('#chessboard-next').fadeIn().click(function() {self.focusOn(games.next())});
             } else {
-                $('#chessboard-next').hide();
+                $('#chessboard-next').fadeOut();
             }
         },
 
@@ -219,7 +226,7 @@ var gameControls = (function () {
         return {
 
             hasNext: function() {
-                return arr.length > (i+1);
+                return arr.length > i;
             },
 
             hasPrevious: function() {
@@ -227,7 +234,11 @@ var gameControls = (function () {
             },
 
             current: function() {
-                return arr[i];
+                if (arr.length == i) {
+                    return "showNewGameOverlay";
+                } else {
+                    return arr[i];
+                }
             },
 
             next: function() {
