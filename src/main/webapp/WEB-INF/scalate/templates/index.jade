@@ -6,12 +6,12 @@ div{:class => "container-fluid", :name => "games"}
   div{:class => "row-fluid"}
     div{:id => "chessboards"}
       div{:id => "chessboard"}
-      div{:id => "chessboard-prev", :class => "navileft"}
-        a(class="button" href="#")
-          i(class="fa fa-chevron-left fa-3")
-      div{:id => "chessboard-next", :class => "naviright"}
-        a(class="button" href="#")
-          i(class="fa fa-chevron-right fa-3")
+      div(id="chessboard-prev" class="navileft" style="display: none;")
+        a(class="button" href="javascript:void(0);")
+          i(class="fa fa-chevron-left fa-3x")
+      div(id="chessboard-next" class="naviright" style="display: none;")
+        a(class="button" href="javascript:void(0);")
+          i(class="fa fa-chevron-right fa-3x")
     div{:id => "challengeOverlay", :style => "display: none;"}
       span{:class => "newGameIcon"}
       p New Game

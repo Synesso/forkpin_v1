@@ -27,8 +27,6 @@ var loginMod = (function () {
                 $('#gDisconnect').show();
                 $('#newGame-loggedIn').show();
                 $('#newGame-notLoggedIn').hide();
-                chessboard.removeFocus(); // todo - merge this with the following:
-                $('#challengeOverlay').click(function() {$('#newGameModal').modal('show')}).show();
             } else if (authResult['error']) {
                 // The user is not signed in.
                 $('#gConnect').show();

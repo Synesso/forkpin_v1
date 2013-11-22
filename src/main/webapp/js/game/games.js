@@ -126,7 +126,10 @@ var chessboard = (function() {
             this.boardDiv.children().children().addClass('challengemode');
         },
 
-        focusOn: function(game) {
+        focusOn: function(games) {
+            // todo - show the new game overlay if beyond the limit of the games
+            var game = games.current();
+            loginMod.profile(game.opponentId(), chessboard.renderOpponent);
             this.focus = game;
             this.boardDiv.children().children().removeClass('challengemode');
             $('#challengeOverlay').hide();
@@ -162,6 +165,17 @@ var chessboard = (function() {
                     board.position(game.san());
                 }
             };
+            var self = this;
+            if (games.hasPrevious()) {
+                $('#chessboard-prev').show().click(function() {self.focusOn(games.previous())});
+            } else {
+                $('#chessboard-prev').hide();
+            }
+            if (games.hasNext()) {
+                $('#chessboard-next').show().click(function() {self.focusOn(games.next())});
+            } else {
+                $('#chessboard-next').hide();
+            }
         },
 
         update: function(game) {
@@ -196,19 +210,56 @@ var gameControls = (function () {
         button.attr('disabled', false).removeClass("noClicky");
     };
 
+    /* returns an object that models a 2x linked-list of games, with a bonus "new game" object at the end.
+     */
+    var gamesList = function(arr) {
+
+        var i = 0;
+
+        return {
+
+            hasNext: function() {
+                return arr.length > (i+1);
+            },
+
+            hasPrevious: function() {
+                return i > 0;
+            },
+
+            current: function() {
+                return arr[i];
+            },
+
+            next: function() {
+                if (this.hasNext()) {
+                    i += 1;
+                }
+                return this;
+            },
+
+            previous: function() {
+                if (this.hasPrevious()) {
+                    i -= 1;
+                }
+                return this;
+            }
+        }
+    };
+
     return {
         loadGamesForUser: function () {
             //noinspection JSUnusedGlobalSymbols
             $.ajax({
                 type: 'GET',
                 url: window.location.origin + '/games',
-                success: function (games) {
-                    console.log("Games for current user:", games);
-                    if (games.length > 0) {
-                        var firstGame = game(games[0]);
-                        chessboard.focusOn(firstGame);
-                        loginMod.profile(firstGame.opponentId(), chessboard.renderOpponent);
-                    }
+                success: function (gamesArray) {
+                    var games = gamesList($.map(gamesArray, function(g) {
+                       return game(g);
+                    }));
+                    chessboard.removeFocus(); // todo - merge this with the following:
+                    $('#challengeOverlay').click(function() {$('#newGameModal').modal('show')}).show();
+                    // todo - what if there's no game
+                    chessboard.focusOn(games);
                 },
                 error: function (e) {
                     console.log('error loading games', e);
@@ -236,7 +287,8 @@ var gameControls = (function () {
                                 if (accepted.action === 'onLoginActionCreated') {
                                     chessboard.alert("Success!", "Now log in to see your game.");
                                 } else {
-                                    chessboard.focusOn(accepted.game);
+                                    gameControls.loadGamesForUser();
+                                    // todo - focus on the newly created game.
                                 }
                             },
                             error: function(e) {
