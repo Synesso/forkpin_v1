@@ -10,17 +10,21 @@ var chessboard = (function() {
 
     var board = new ChessBoard('chessboard', config);
 
+    var games;
+
     var renderProfile = function(profile, div, leftAligned) {
-        div.hide();
+        div.fadeOut();
         div.empty();
-        var htmlAvatar = '<img src="' + profile.image.url + '" class="img-circle"/>';
-        var htmlName = '<span style="vertical-align: bottom; font-size: 24.5px; font-weight: bold;">' + profile.name.givenName + '</span>';
-        if (leftAligned) {
-            div.append(htmlAvatar + htmlName);
-        } else {
-            div.append(htmlName + htmlAvatar);
+        if (profile !== null) {
+            var htmlAvatar = '<img src="' + profile.image.url + '" class="img-circle"/>';
+            var htmlName = '<span style="vertical-align: bottom; font-size: 24.5px; font-weight: bold;">' + profile.name.givenName + '</span>';
+            if (leftAligned) {
+                div.append(htmlAvatar + htmlName);
+            } else {
+                div.append(htmlName + htmlAvatar);
+            }
+            div.show('slow');
         }
-        div.show('slow');
     };
 
     var nextPageToken = '';
@@ -108,6 +112,28 @@ var chessboard = (function() {
         return true;
     });
 
+    $('#chessboard-prev').click(function() {
+        console.log("Running prev click event");
+        chessboard.games.previous();
+        $('#chessboard-next').fadeIn();
+        if (!chessboard.games.hasPrevious()) {
+            $('#chessboard-prev').fadeOut();
+        }
+        chessboard.refocus();
+        // todo - opponent fade out and in (only if different)
+        // todo - flip board if player is black
+    });
+
+    $('#chessboard-next').fadeIn().click(function() {
+        console.log("Running prev click event");
+        chessboard.games.next();
+        $('#chessboard-prev').fadeIn();
+        if (!chessboard.games.hasNext()) {
+            $('#chessboard-next').fadeOut();
+        }
+        chessboard.refocus();
+    });
+
     return {
 
         focus: game,
@@ -125,15 +151,24 @@ var chessboard = (function() {
             this.focus = null;
             this.boardDiv.children().children().addClass('challengemode');
             board.clear(true);
+            // todo - remove the opponent
         },
 
         focusOn: function(games) {
-            // todo - show the new game overlay if beyond the limit of the games
-            var game = games.current();
+            chessboard.games = games;
+            if (games.hasNext()) {
+                $('#chessboard-next').fadeIn();
+            }
+            chessboard.refocus();
+        },
+
+        refocus: function() {
+            var game = chessboard.games.current();
             if (game === "showNewGameOverlay") {
                 console.log("Showing the new game overlay");
                 this.removeFocus();
                 $('#challengeOverlay').show();
+                chessboard.renderOpponent(null);
             } else {
                 loginMod.profile(game.opponentId(), chessboard.renderOpponent);
                 this.focus = game;
@@ -171,17 +206,6 @@ var chessboard = (function() {
                         board.position(game.san());
                     }
                 };
-            }
-            var self = this;
-            if (games.hasPrevious()) {
-                $('#chessboard-prev').fadeIn().click(function() {self.focusOn(games.previous())});
-            } else {
-                $('#chessboard-prev').fadeOut();
-            }
-            if (games.hasNext()) {
-                $('#chessboard-next').fadeIn().click(function() {self.focusOn(games.next())});
-            } else {
-                $('#chessboard-next').fadeOut();
             }
         },
 
@@ -267,9 +291,8 @@ var gameControls = (function () {
                     var games = gamesList($.map(gamesArray, function(g) {
                        return game(g);
                     }));
-                    chessboard.removeFocus(); // todo - merge this with the following:
+                    chessboard.removeFocus();
                     $('#challengeOverlay').click(function() {$('#newGameModal').modal('show')}).show();
-                    // todo - what if there's no game
                     chessboard.focusOn(games);
                 },
                 error: function (e) {
