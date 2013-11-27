@@ -150,7 +150,6 @@ var chessboard = (function() {
             this.focus = null;
             this.boardDiv.children().children().addClass('challengemode');
             board.clear(true);
-            // todo - remove the opponent
         },
 
         focusOn: function(games) {
@@ -174,6 +173,11 @@ var chessboard = (function() {
                 this.boardDiv.children().children().removeClass('challengemode');
                 $('#challengeOverlay').hide();
                 board.position(game.san());
+                if (game.playerColour() === 'w') {
+                    board.orientation('white');
+                } else {
+                    board.orientation('black');
+                }
                 config.onDragStart = function(source) {
                     config.validMovesForPiece = game.validMovesFrom(source);
                     return config.validMovesForPiece.length > 0;

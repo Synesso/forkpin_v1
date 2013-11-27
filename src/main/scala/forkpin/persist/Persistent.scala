@@ -97,7 +97,7 @@ object Persistent extends Config {
     userQuery.firstOption
   }
 
-  // todo - rather than use the people service twice, can we cache result?
+  // todo - memoize the peopleService result
   def userOrBuild(gPlusId: String, peopleService: PeopleService) = database withSession {
     user(gPlusId).getOrElse{
       val person = peopleService.get(gPlusId)
@@ -135,20 +135,6 @@ object Persistent extends Config {
      }
     }.getOrElse(Left(ChallengeAcceptFailure(s"challenge $challengeId does not exist")))
   }
-
-  /*
-    def createChallenge(user: User): Either[Challenge, Game] = database withSession {
-      logger.info(s"Received open challenge from forkpin.User(${user.gPlusId})")
-      val challengeQuery = Query(Challenges).filter(_.challengerId =!= user.gPlusId)
-      challengeQuery.firstOption.map{c =>
-        Query(Challenges).filter(_.id === c.id).delete
-        val gameRow = Games.forInsert returning Games insert GameRow(None, user.gPlusId, c.challengerId)
-        Right(Game.buildFrom(gameRow)) // todo - randomise white/black
-      }.getOrElse{
-        Left(Challenges.forInsert returning Challenges insert Challenge(None, user.gPlusId, None, now))
-      }
-    }
-  */
 
   def games(user: User): Seq[Game] = database withSession {
     val gameRows = Query(Games).filter{g => g.blackId === user.gPlusId || g.whiteId === user.gPlusId}
