@@ -13,18 +13,19 @@ var chessboard = (function() {
     var games;
 
     var renderProfile = function(profile, div, leftAligned) {
-        div.fadeOut();
-        div.empty();
-        if (profile !== null) {
-            var htmlAvatar = '<img src="' + profile.image.url + '" class="img-circle"/>';
-            var htmlName = '<span style="vertical-align: bottom; font-size: 24.5px; font-weight: bold;">' + profile.name.givenName + '</span>';
-            if (leftAligned) {
-                div.append(htmlAvatar + htmlName);
-            } else {
-                div.append(htmlName + htmlAvatar);
+        div.fadeOut(duration = 400, complete = function() {
+            div.empty();
+            if (profile !== null) {
+                var htmlAvatar = '<img src="' + profile.image.url + '" class="img-circle"/>';
+                var htmlName = '<span style="vertical-align: bottom; font-size: 24px; font-weight: bold;">' + profile.name.givenName + '</span>';
+                if (leftAligned) {
+                    div.append(htmlAvatar + htmlName);
+                } else {
+                    div.append(htmlName + htmlAvatar);
+                }
+                div.fadeIn();
             }
-            div.show('slow');
-        }
+        });
     };
 
     var nextPageToken = '';
@@ -119,11 +120,9 @@ var chessboard = (function() {
             $('#chessboard-prev').fadeOut();
         }
         chessboard.refocus();
-        // todo - opponent fade out and in (only if different)
-        // todo - flip board if player is black
     });
 
-    $('#chessboard-next').fadeIn().click(function() {
+    $('#chessboard-next').click(function() {
         console.log("Running prev click event");
         chessboard.games.next();
         $('#chessboard-prev').fadeIn();
