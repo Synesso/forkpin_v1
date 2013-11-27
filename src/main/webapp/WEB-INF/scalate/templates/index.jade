@@ -25,6 +25,7 @@ div{:class => "container-fluid", :name => "games"}
         - include("new_game_modal-email.jade")
         - include("new_game_modal-friends.jade")
       div(class="modal-footer")
+        a(id="chEmBtn" class="btn btn-primary") Challenge
         a(href="javascript:void(0);" class="btn" data-dismiss="modal") Close
   div{:class => "row-fluid"}
     div{:id => "playerPanel", :class => "offset3 span6 centering well", :style => "margin-top: 20px;"}

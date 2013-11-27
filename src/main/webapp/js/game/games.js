@@ -85,9 +85,8 @@ var chessboard = (function() {
                 url: window.location.origin + '/challenge/email',
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8',
                 success: function (result) {
-                    $('#chEmHlp').text('Challenged ' + emailAddress + '. Challenge someone else?');
-                    $("#chEmTxt").val('');
                     $('#chEmBtn').attr('disabled', false).removeClass('noClicky');
+                    $('#newGameModal').modal('hide');
                     console.log('ok issuing email challenge to', emailAddress, result);
                 },
                 error: function (e) {
@@ -100,7 +99,7 @@ var chessboard = (function() {
                 data: $('#chEmFrm').serialize()
             });
         } else {
-            console.log("todo - how to show field is not valid?");
+            console.log("todo - how to show field is not valid?"); // todo
         }
     });
 
