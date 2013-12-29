@@ -6,12 +6,9 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
     div{:class => "container"}
       a{:class => "brand", :href => "/", :style => "border: none;"} #{appName}
       div{:class => "nav-collapse collapse"}
-        ul{:class => "nav"}
-          // li
-          //   a(id="playButton" href="javascript:void(0);") Play
         ul{:class => "nav pull-right", :style => "top: 5px;"}
           li
-            div{:id => "gConnect", :style => "display: none"}
+            div{:id => "gConnect"}
               button(class="g-signin"
                 data-scope="https://www.googleapis.com/auth/plus.login"
                 data-requestvisibleactions="http://schemas.google.com/AddActivity"
@@ -26,12 +23,5 @@ div{:class => "navbar navbar-inverse navbar-fixed-top"}
                 span{:id => "userName"}
                 span{:class => "caret"}
               ul{:class => "dropdown-menu"}
-                // li
-                //   a(href="#") Action 1
-                // li
-                //   a(href="#") Action 2
-                // li
-                //   a(href="#") Action 3
-                // li{:class => "divider"}
                 li
                   a{:href => "javascript:void(0);", :id => "gDisconnect"} Log Out
