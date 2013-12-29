@@ -10,7 +10,6 @@ scalaVersion := "2.10.2"
 
 seq(webSettings :_*)
 
-classpathTypes ~= (_ + "orbit")
 
 libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "1.0.1",
@@ -21,7 +20,7 @@ libraryDependencies ++= Seq(
   "org.scalatra" %% "scalatra-json" % "2.2.1",
   "org.eclipse.jetty" % "jetty-server" % "9.0.1.v20130408" % "compile;container",
   "org.eclipse.jetty" % "jetty-webapp" % "9.0.1.v20130408" % "compile;container",
-  "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "compile;container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar")),
+  "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "compile;container" artifacts (Artifact("javax.servlet", "jar", "jar")),
   "org.json4s" %% "json4s-jackson" % "3.2.5",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
   "net.databinder.dispatch" %% "dispatch-core" % "0.11.0",
