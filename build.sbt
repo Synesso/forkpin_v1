@@ -31,13 +31,17 @@ libraryDependencies ++= Seq(
   "com.github.synesso" %% "eshq" % "0.1",
   "me.lessis" %% "courier" % "0.1.2",
   "org.specs2" %% "specs2" % "2.2" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test"
+  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
+  "org.seleniumhq.selenium" % "selenium-java" % "2.37.1" % "it",
+  "com.github.detro.ghostdriver" % "phantomjsdriver" % "1.0.4" % "it",
+  "com.saucelabs" % "saucerest" % "1.0.7" % "it"
 )
 
 resolvers ++= Seq(
   "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/",
   "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/",
-  "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
+  "softprops-maven" at "http://dl.bintray.com/content/softprops/maven",
+  "Saucelabs Repo" at "https://repository-saucelabs.forge.cloudbees.com/release"
 )
 
 seq(SbtStartScript.startScriptForClassesSettings: _*)
