@@ -12,7 +12,7 @@ seq(webSettings :_*)
 
 
 libraryDependencies ++= Seq(
-  "com.typesafe.slick" %% "slick" % "1.0.1",
+  "com.typesafe.slick" % "slick_2.10" % "2.0.0-M3",
   "com.novus" %% "salat-core" % "1.9.2" exclude("org.scala-lang", "scalap"),
   "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" %% "scalatra" % "2.2.1",
@@ -30,11 +30,11 @@ libraryDependencies ++= Seq(
   "com.google.http-client" % "google-http-client-jackson2" % "1.14.1-beta",
   "com.github.synesso" %% "eshq" % "0.1",
   "me.lessis" %% "courier" % "0.1.2",
-  "org.specs2" %% "specs2" % "2.2" % "test",
-  "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
-  "org.seleniumhq.selenium" % "selenium-java" % "2.37.1" % "it",
-  "com.github.detro.ghostdriver" % "phantomjsdriver" % "1.0.4" % "it",
-  "com.saucelabs" % "saucerest" % "1.0.7" % "it"
+  "org.specs2" %% "specs2" % "2.2" % "it,test",
+  "org.scalacheck" %% "scalacheck" % "1.10.0" % "it,test",
+  "org.seleniumhq.selenium" % "selenium-java" % "2.37.1" % "it,test",
+  "com.saucelabs" % "saucerest" % "1.0.7" % "it,test",
+  "com.h2database" % "h2" % "1.3.174" % "it,test"
 )
 
 resolvers ++= Seq(

@@ -6,15 +6,12 @@ import java.math.BigInteger
 import java.security.SecureRandom
 import org.scalatra._
 import forkpin.web.gplus._
-import forkpin.persist.Persistent
 import com.github.synesso.eshq.Channel
-import forkpin.SendMail
+import forkpin.{Config, SendMail}
 import org.json4s.JsonDSL._
 import forkpin.web.actions.{AcceptChallenge, OnLoginAction}
 
 class ChessServlet extends ForkpinServlet with GPlusOperations {
-
-  Persistent.create()
 
   get("/") {
     contentType="text/html"
@@ -46,7 +43,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
             else if (!request.getParameter("gplus_id").equals(tokenInfo.getUserId)) Unauthorized(reason = "Token's user ID doesn't match given user ID")
             else if (!clientId.equals(tokenInfo.getIssuedTo)) Unauthorized(reason = "Token's client ID does not match app's")
             else {
-              val user = Persistent.userOrBuild(tokenInfo.getUserId, new PeopleService(tokenResponse.toString))
+              val user = repository.userOrBuild(tokenInfo.getUserId, new PeopleService(tokenResponse.toString))
               session.setAttribute("user", user)
               session.setAttribute("token", tokenResponse)
               Ok(reason = "Successfully connected user")
@@ -92,7 +89,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   post("/challenge/email") {
     authorisedJsonResponse {(token, user) =>
       val email = params("email")
-      val challenge = Persistent.createChallenge(user, email)
+      val challenge = repository.createChallenge(user, email)
       SendMail.send(challenge, baseUrl)
       Ok(reason = s"Created $challenge", body = challenge)
     }
@@ -102,7 +99,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     val challengeId = params("id").toInt
     val key = params("key")
     authorisedJsonResponse({(token, user) =>
-      Persistent.acceptChallenge(user, challengeId, key).fold({ failure =>
+      repository.acceptChallenge(user, challengeId, key).fold({ failure =>
         Forbidden(reason = failure.reason)
       }, { game =>
         Ok(Map("action" -> "gameCreated", "game" -> game.forClient))
@@ -118,7 +115,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
     jsonResponse {
       val challengeId = params("id").toInt
       val key = params("key")
-      Persistent.challenge(challengeId, key).map{c =>
+      repository.challenge(challengeId, key).map{c =>
         Ok(c.forClient)
       }.getOrElse(
         NotFound(reason = "Challenge/key combination not found", body = Map("challenge" -> challengeId, "key" -> key))
@@ -128,7 +125,7 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
 
   get("/games") {
     authorisedJsonResponse {(token, user) =>
-      val games = Persistent.games(user)
+      val games = repository.games(user)
       Ok(reason = s"Retrieved games for $user", body = games.map(_.forClient))
     }
   }
@@ -136,11 +133,11 @@ class ChessServlet extends ForkpinServlet with GPlusOperations {
   post("/move") {
     authorisedJsonResponse {(token, user) =>
       val (gameId, from, to) = (params("gameId"), params("from"), params("to"))
-      Persistent.game(gameId.toInt).map{game =>
+      repository.game(gameId.toInt).map{game =>
         game.move(from, to).fold(
           (invalidMove) => Forbidden(reason = "Invalid move", body = invalidMove.forClient),
           (updatedGame) => {
-            Persistent.updateGame(updatedGame)
+            repository.update(updatedGame)
             eventSourceClient.sendJson(Channel(s"forkpin-game-$gameId"), updatedGame.forClient)
             Ok(updatedGame.forClient)
           }

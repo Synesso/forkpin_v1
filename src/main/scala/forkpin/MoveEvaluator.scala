@@ -1,7 +1,6 @@
 package forkpin
 
-import forkpin.persist.Persistent
-import Persistent.User
+import forkpin.persist.User
 import RankAndFile._
 
 class MoveEvaluator(game: Game, user: User) {

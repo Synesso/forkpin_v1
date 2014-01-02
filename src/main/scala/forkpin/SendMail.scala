@@ -1,6 +1,5 @@
 package forkpin
 
-import persist.Persistent.Challenge
 import courier._, Defaults._
 import javax.mail.internet.InternetAddress
 import scala.language.reflectiveCalls
@@ -20,7 +19,7 @@ object SendMail extends Config {
       .to(toAddress(c))
       .subject(s"${c.challenger.displayName} wants to play chess with you")
       .content(Text(s"""Accept this challenge by clicking this link:
-       $baseUrl?challenge=${c.id.get}&key=${c.key}""")))
+       $baseUrl?challenge=${c.id}&key=${c.key}""")))
     ftrSend.onSuccess {case _ => logger.info(s"email sent to ${c.email}.")}
     ftrSend.onFailure{case t => logger.error(s"email send to ${c.email} failed.", t)}
   }

@@ -1,7 +1,6 @@
 package forkpin
 
-import forkpin.persist.Persistent
-import Persistent._
+import forkpin.persist.{GameRow, User}
 import RankAndFile._
 
 case class Game(id: Int, white: User, black: User,
@@ -48,6 +47,15 @@ case class Game(id: Int, white: User, black: User,
     )
   }
 
+  def afterMoves(moves: String) = {
+    moves.grouped(4).map{str: String =>
+      val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
+      (rfs.head, rfs.tail.head)
+    }.foldRight(this){case ((from, to), game) =>
+      game.move(from, to).right.get
+    }
+  }
+
   def isOccupiedAt(rf: RankAndFile) = board.pieceAt(rf).isDefined
 
   def isThreatenedAt(rf: RankAndFile) = {
@@ -78,7 +86,7 @@ case class Game(id: Int, white: User, black: User,
     "moves" -> moves.map(_.forClient).toList)
 }
 
-object Game {
+object Game extends Config {
   def apply(id: Int, white: User, black: User): Game = Game(id, white, black, white)
 
   val openingPosition = Vector[(RankAndFile, Piece)](
@@ -92,16 +100,6 @@ object Game {
     E8 -> BlackKing, F8 -> BlackBishop, G8 -> BlackKnight, H8 -> BlackRook
   ).foldLeft(Vector.fill(64)(None: Option[Piece])){(arr, next) =>
     arr.updated(next._1.id, Some(next._2))
-  }
-
-  def buildFrom(row: GameRow): Game = {
-    val startGame = Game(row.id.get, user(row.whiteId).get, user(row.blackId).get)
-    row.moves.grouped(4).map{str: String =>
-      val rfs = str.grouped(2).map(RankAndFile.withName).toSeq
-      (rfs.head, rfs.tail.head)
-    }.foldRight(startGame){case ((from, to), game) =>
-      game.move(from, to).right.get
-    }
   }
 }
 

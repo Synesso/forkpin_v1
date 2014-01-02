@@ -5,7 +5,7 @@ import org.specs2.mock.Mockito
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Gen._
 import scala.Some
-import forkpin.persist.Persistent.User
+import forkpin.persist.User
 
 trait TestImplicits extends Mockito {
 

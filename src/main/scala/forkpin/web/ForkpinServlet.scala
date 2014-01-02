@@ -4,8 +4,7 @@ import org.scalatra.{Unauthorized, ActionResult, ScalatraServlet}
 import org.scalatra.json.JacksonJsonSupport
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.scalate.ScalateSupport
-import forkpin.persist.Persistent
-import Persistent.User
+import forkpin.persist.User
 import forkpin.Config
 import gplus.Token
 import com.github.synesso.eshq.{Secret, Key, EventSourceClient}

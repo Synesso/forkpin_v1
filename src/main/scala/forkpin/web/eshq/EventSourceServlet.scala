@@ -7,7 +7,7 @@ import java.net.URL
 import org.scalatra.FutureSupport
 import scala.concurrent.ExecutionContext
 
-class EventSourceServlet extends ForkpinServlet with Config with FutureSupport {
+class EventSourceServlet extends ForkpinServlet with FutureSupport {
   val executor: ExecutionContext = ExecutionContext.global
 
   post("/socket") {

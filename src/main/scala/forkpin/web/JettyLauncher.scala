@@ -5,12 +5,17 @@ import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextH
 import forkpin.Config
 import eshq.EventSourceServlet
 
-object JettyLauncher extends Config {
-
+object JettyLauncher {
   def main(args: Array[String]) {
+    new JettyLauncher().start
+  }
+}
 
-    val port = properties.get("PORT").map(_.toInt).getOrElse(5000)
-    val server = new Server(port)
+class JettyLauncher extends Config {
+
+  private val server = new Server(port)
+
+  def start = {
     val context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS)
 
     context.addServlet(classOf[EventSourceServlet], "/eshq/*")
@@ -20,8 +25,17 @@ object JettyLauncher extends Config {
     context.addServlet(defaultServlet, "/")
     context.setResourceBase("src/main/webapp")
 
+    if (properties.contains("DATABASE_FORCE_CREATE")) repository.recreate()
+
     server.start()
     server.join()
+
+    this
+  }
+
+  def stop = {
+    server.stop()
+    this
   }
 
 }

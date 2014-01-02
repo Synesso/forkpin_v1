@@ -1,7 +1,5 @@
 package forkpin
 
-import forkpin.persist.Persistent
-import Persistent.User
 import org.specs2.{ScalaCheck, Specification}
 import RankAndFile._
 import org.scalacheck.{Arbitrary, Gen}

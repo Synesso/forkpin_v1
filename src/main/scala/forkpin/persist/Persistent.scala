@@ -1,16 +1,8 @@
 package forkpin.persist
 
-import java.sql.Timestamp
-import scala.slick.driver.PostgresDriver.simple._
-import Database.threadLocalSession
-import scala.slick.jdbc.meta.MTable
-import scala.slick.lifted.DDL
-import forkpin.{Game, Config}
-import scala.slick.lifted.ColumnOption.DBType
-import forkpin.web.gplus.PeopleService
 
-object Persistent extends Config {
-
+object Persistent {
+/*
   val tables = Seq(Games, Users, Challenges)
 
   case class Challenge(id: Option[Int], challengerId: String, email: String, key: String, created: Timestamp) {
@@ -153,5 +145,6 @@ object Persistent extends Config {
   }
 
   def now = new Timestamp(System.currentTimeMillis)
+*/
 
 }
