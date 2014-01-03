@@ -2,7 +2,7 @@ package forkpin.persist
 
 import java.sql.Timestamp
 import scala.slick.lifted.Tag
-import forkpin.Game
+import scala.slick.jdbc.StaticQuery
 
 case class ChallengeRow(id: Option[Int], challengerId: String, email: String, key: String, created: Timestamp)
 
@@ -33,4 +33,7 @@ trait ChallengeComponent { this: Profile with UserComponent with GameComponent =
     logger.info(s"$challenge created")
     (challenges returning challenges) insert challenge
   }
+
+  def createChallengesTable(implicit session: Session) = challenges.ddl.create
+  def dropChallengesTable(implicit session: Session) = StaticQuery.updateNA("drop table challenges cascade").execute
 }

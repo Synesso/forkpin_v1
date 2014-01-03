@@ -5,7 +5,6 @@ import scala.slick.driver.JdbcProfile
 import forkpin.web.gplus.PeopleService
 import forkpin.{Challenge, Game}
 import org.slf4j.LoggerFactory
-import scala.slick.jdbc.meta.MTable
 
 // todo - future return values throughout this level and the *components below
 class Repository(db: Database, jdbcProfile: JdbcProfile) {
@@ -65,6 +64,12 @@ class Repository(db: Database, jdbcProfile: JdbcProfile) {
     } yield Game(g.id.get, w, b) afterMoves g.moves
   }
 
+  def update(game: Game) = {
+    val gameRow = GameRow(Some(game.id), game.white.gPlusId, game.black.gPlusId,
+      game.moves.map(m => s"${m.from}${m.to}").mkString)
+    db withSession { implicit s => dataAccess.update(gameRow) }
+  }
+
   def user(id: String) = db withSession { implicit s => dataAccess.user(id) }
 
   def userOrBuild(id: String, peopleService: PeopleService) = db withSession { implicit s =>
@@ -78,59 +83,23 @@ class Repository(db: Database, jdbcProfile: JdbcProfile) {
     }
   }
 
-  def update(game: Game) = {
-    val gameRow = GameRow(Some(game.id), game.white.gPlusId, game.black.gPlusId,
-      game.moves.map(m => s"${m.from}${m.to}").mkString)
-    db withSession { implicit s => dataAccess.update(gameRow) }
-  }
-
-
   def recreate() = {
-    import scala.slick.jdbc.{StaticQuery => Q}
-    val tables = Set(dataAccess.users, dataAccess.games, dataAccess.challenges)
-    db withSession { implicit s =>
-
-      dataAccess.usersDDL.create()
-
-/*
-
-      def existingTables = MTable.getTables.list().map(_.name.name).toSet
-      tables.filter{t =>
-              val f: String = t.baseTableRow
-      false
-//        existingTables.contains(t.baseTableRow.tableName)
-      }
-      (existingTables -- tables).foreach{t =>
-        logger.info(s"Dropping $t")
-        Q.updateNA(s"drop table t cascade").execute
-      }
-*/
-
-/*
-      val tablesToCreate = tables -- existingTables
-      val ddl: Option[DDL] = tablesToCreate.foldLeft(None: Option[DDL]){(ddl, table) =>
-        ddl match {
-          case Some(d) => Some(d ++ table.ddl)
-          case _ => Some(table.ddl)
+    class Builder(override val profile: JdbcProfile) extends UserComponent with GameComponent with ChallengeComponent with Profile {
+      def build() = {
+        db withSession { implicit s =>
+          dropChallengesTable
+          dropGamesTable
+          dropUsersTable
+          createUsersTable
+          createGamesTable
+          createChallengesTable
         }
       }
-      ddl.foreach{_.create}
-*/
-
     }
-/*
-    logger.info(s"Creating $tablesToCreate")
-    val ddl: Option[DDL] = tablesToCreate.foldLeft(None: Option[DDL]){(ddl, table) =>
-      ddl match {
-        case Some(d) => Some(d ++ table.ddl)
-        case _ => Some(table.ddl)
-      }
-    }
-    ddl.foreach{_.create}
-*/
+    new Builder(jdbcProfile).build()
   }
 
-  val dataAccess = new Profile with UserComponent with GameComponent with ChallengeComponent {
+  val dataAccess = new UserComponent with GameComponent with ChallengeComponent with Profile {
     val profile: JdbcProfile = jdbcProfile
   }
 }

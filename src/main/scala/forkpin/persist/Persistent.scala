@@ -64,6 +64,7 @@ object Persistent {
     Database.forURL(url, driver = driver, user = user, password = password)
   }
 
+
   def create() = database withSession {
     if (properties.contains("DATABASE_FORCE_CREATE")) {
       import scala.slick.jdbc.{StaticQuery => Q}

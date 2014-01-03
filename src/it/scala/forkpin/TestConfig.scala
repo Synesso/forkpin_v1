@@ -40,6 +40,11 @@ trait TestConfig extends Config {
     "DATABASE_PROFILE" -> "H2"
   )
 
-  override lazy val properties = ConfigMemo.properties ++ hsqldbConfig
+  override lazy val properties = {
+    val p = ConfigMemo.properties ++ hsqldbConfig
+    println("test properties")
+    p.foreach(println)
+    p
+  }
 
 }

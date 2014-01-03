@@ -1,15 +1,10 @@
 package forkpin.persist
 
-import forkpin.{RankAndFile, Game}
 import scala.slick.ast.ColumnOption.DBType
 import scala.slick.lifted.Tag
+import scala.slick.jdbc.StaticQuery
 
 case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
-
-//object GameRow {
-//  def buildFrom(game: Game) = GameRow(Some(game.id), game.white.gPlusId, game.black.gPlusId,
-//    game.moves.map(m => s"${m.from}${m.to}").mkString)
-//}
 
 trait GameComponent { this: Profile with UserComponent =>
   import profile.simple._
@@ -42,6 +37,9 @@ trait GameComponent { this: Profile with UserComponent =>
     val query = for { g <- games if g.id === game.id } yield g.moves
     query.update(game.moves)
   }
+
+  def createGamesTable(implicit session: Session) = games.ddl.create
+  def dropGamesTable(implicit session: Session) = StaticQuery.updateNA("drop table games cascade").execute
 
 }
 

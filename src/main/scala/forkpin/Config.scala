@@ -17,20 +17,20 @@ trait Config {
   lazy val clientId = properties("CLIENT_ID")
   lazy val clientSecret = properties("CLIENT_SECRET")
 
-  lazy val repository = {
-    val database = {
-      val driver = properties("DATABASE_DRIVER")
-      val url = properties("DATABASE_JDBC_URL")
-      val user = properties("DATABASE_USERNAME")
-      val password = properties("DATABASE_USERPWD")
-      Database.forURL(url, driver = driver, user = user, password = password)
-    }
-    val jdbcProfile = properties.get("DATABASE_PROFILE") match {
-      case Some("H2") => H2Driver
-      case _ => PostgresDriver
-    }
-    new Repository(database, jdbcProfile)
+  lazy val database = {
+    val driver = properties("DATABASE_DRIVER")
+    val url = properties("DATABASE_JDBC_URL")
+    val user = properties("DATABASE_USERNAME")
+    val password = properties("DATABASE_USERPWD")
+    Database.forURL(url, driver = driver, user = user, password = password)
   }
+
+  lazy val jdbcProfile = properties.get("DATABASE_PROFILE") match {
+    case Some("H2") => H2Driver
+    case _ => PostgresDriver
+  }
+
+  lazy val repository = new Repository(database, jdbcProfile)
 
 }
 
@@ -41,7 +41,10 @@ object ConfigMemo {
     lazy val envFile = Source.fromFile(".env").getLines().map(_.split("=")).map{line =>
       (line(0), line.tail.mkString("="))
     }.toMap
-    if (new File(".env").exists) envFile else sys.env
+    val p = if (new File(".env").exists) envFile else sys.env
+    println("core properties")
+    p.foreach(println)
+    p
   }
 
 }
