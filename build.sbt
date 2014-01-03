@@ -12,7 +12,7 @@ seq(webSettings :_*)
 
 
 libraryDependencies ++= Seq(
-  "com.typesafe.slick" % "slick_2.10" % "2.0.0-M3",
+  "com.typesafe.slick" % "slick_2.10" % "2.0.0-RC1",
   "com.novus" %% "salat-core" % "1.9.2" exclude("org.scala-lang", "scalap"),
   "org.postgresql" % "postgresql" % "9.2-1003-jdbc4",
   "org.scalatra" %% "scalatra" % "2.2.1",
