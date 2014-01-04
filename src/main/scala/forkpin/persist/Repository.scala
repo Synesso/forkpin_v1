@@ -99,9 +99,8 @@ class Repository(db: Database, jdbcProfile: JdbcProfile) {
     new Builder(jdbcProfile).build()
   }
 
-  val dataAccess = new UserComponent with GameComponent with ChallengeComponent with Profile {
-    val profile: JdbcProfile = jdbcProfile
-  }
+  class DataAccess(override val profile: JdbcProfile) extends UserComponent with GameComponent with ChallengeComponent with Profile
+  val dataAccess = new DataAccess(jdbcProfile)
 }
 
 case class ChallengeAcceptFailure(reason: String)

@@ -41,10 +41,7 @@ object ConfigMemo {
     lazy val envFile = Source.fromFile(".env").getLines().map(_.split("=")).map{line =>
       (line(0), line.tail.mkString("="))
     }.toMap
-    val p = if (new File(".env").exists) envFile else sys.env
-    println("core properties")
-    p.foreach(println)
-    p
+    if (new File(".env").exists) envFile else sys.env
   }
 
 }

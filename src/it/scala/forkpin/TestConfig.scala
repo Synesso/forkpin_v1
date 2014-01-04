@@ -33,18 +33,13 @@ trait TestConfig extends Config {
 
   val hsqldbConfig = Map(
     "DATABASE_DRIVER" -> "org.h2.Driver",
-    "DATABASE_JDBC_URL" -> "jdbc:h2:~/.forkpin",
+    "DATABASE_JDBC_URL" -> "jdbc:h2:mem:tests",
     "DATABASE_USERNAME" -> "",
     "DATABASE_USERPWD" -> "",
     "DATABASE_FORCE_CREATE" -> "true",
     "DATABASE_PROFILE" -> "H2"
   )
 
-  override lazy val properties = {
-    val p = ConfigMemo.properties ++ hsqldbConfig
-    println("test properties")
-    p.foreach(println)
-    p
-  }
+  override lazy val properties = ConfigMemo.properties ++ hsqldbConfig
 
 }

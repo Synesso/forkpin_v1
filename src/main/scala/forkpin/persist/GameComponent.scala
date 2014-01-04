@@ -3,13 +3,15 @@ package forkpin.persist
 import scala.slick.ast.ColumnOption.DBType
 import scala.slick.lifted.Tag
 import scala.slick.jdbc.StaticQuery
+import java.sql.SQLException
+import scala.slick.jdbc.meta.MTable
 
 case class GameRow(id: Option[Int], whiteId: String, blackId: String, moves: String = "")
 
 trait GameComponent { this: Profile with UserComponent =>
   import profile.simple._
 
-  class Games(tag: Tag) extends Table[GameRow](tag, "games") {
+  class Games(tag: Tag) extends Table[GameRow](tag, "GAMES") {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def whiteId = column[String]("white_id")
     def blackId = column[String]("black_id")
@@ -39,7 +41,12 @@ trait GameComponent { this: Profile with UserComponent =>
   }
 
   def createGamesTable(implicit session: Session) = games.ddl.create
-  def dropGamesTable(implicit session: Session) = StaticQuery.updateNA("drop table games cascade").execute
+  def dropGamesTable(implicit session: Session) = {
+    if (MTable.getTables.list().map(_.name.name).contains("GAMES")) {
+      StaticQuery.updateNA("drop table GAMES cascade").execute
+    }
+  }
+
 
 }
 
