@@ -24,7 +24,7 @@ trait GameComponent { this: Profile with UserComponent =>
   val games = TableQuery[Games]
 
   def games(user: User)(implicit session: Session): Seq[GameRow] = {
-    games.filter(g => g.blackId === user.gPlusId || g.whiteId === user.gPlusId).to[Vector]
+    games.filter(g => g.blackId === user.gPlusId || g.whiteId === user.gPlusId).buildColl[Vector]
   }
 
   def game(id: Int)(implicit session: Session): Option[GameRow] = {
@@ -32,7 +32,8 @@ trait GameComponent { this: Profile with UserComponent =>
   }
 
   def insert(gameRow: GameRow)(implicit session: Session): GameRow = {
-    (games returning games) insert gameRow
+    val id = (games returning games.map(_.id)) insert gameRow
+    gameRow.copy(id = Some(id))
   }
 
   def update(game: GameRow)(implicit session: Session) = {
