@@ -22,8 +22,8 @@ trait TestConfig extends Config {
       new RemoteWebDriver(new URL(properties("REMOTE_WEBDRIVER_URL")), capabilities)
     }
 
-    val driver = properties("WEB_DRIVER") match {
-      case "remote" => remoteDriver
+    val driver = properties.get("WEB_DRIVER") match {
+      case Some("remote") => remoteDriver
       case _ => firefoxDriver
     }
 

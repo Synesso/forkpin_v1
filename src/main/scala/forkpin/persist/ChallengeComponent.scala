@@ -31,7 +31,6 @@ trait ChallengeComponent { this: Profile with UserComponent with GameComponent =
   }
 
   def insert(challenge: ChallengeRow)(implicit session: Session): ChallengeRow = {
-    logger.info(s"$challenge created")
     val id = (challenges returning challenges.map(_.id)) += challenge
     challenge.copy(id = Some(id))
   }
