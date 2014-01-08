@@ -4,6 +4,7 @@ scala:
 jdk:
 - oraclejdk7
 - openjdk7
+script: sbt ++$TRAVIS_SCALA_VERSION test it:test
 deploy:
   provider: heroku
   api_key:
@@ -12,3 +13,8 @@ deploy:
   on:
     repo: Synesso/forkpin
     jdk: oraclejdk7
+addons:
+  sauce_connect:
+    username: synesso
+    access_key:
+      secure: mlOjiRcTcfdo6JoIYO1qvSOAZsQOxsC1DirPKVdTvyQy8KtuxkFyMkcRFcmIm1bdm4kwN0X0zIc+k8L8Ma6IYdYTZW6D++WyLdgEBBySUeA3EpVvtz3LfGH4WnMPxL2RINoRiPk/Pwb+DZX0500SztihnZNwuh7njvq2YPVz2WE=
