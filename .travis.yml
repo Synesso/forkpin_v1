@@ -3,7 +3,6 @@ scala:
 - 2.10.1
 jdk:
 - oraclejdk7
-- openjdk7
 script: sbt ++$TRAVIS_SCALA_VERSION test it:test
 deploy:
   provider: heroku
