@@ -28,8 +28,8 @@ class GameSpec extends Specification with ScalaCheck with TestImplicits { def is
 
   def haveNoEnPassantTarget = aNewGame.enPassantTarget must beNone
 
-  def allowAllCastling = aNewGame.castling.permitted must haveTheSameElementsAs(
-    Set(BlackKingSide, BlackQueenSide, WhiteKingSide, WhiteQueenSide))
+  def allowAllCastling = aNewGame.castling.permitted must_==
+    Set(BlackKingSide, BlackQueenSide, WhiteKingSide, WhiteQueenSide)
 
   def allWhitePawnsToMove1Or2Squares = Arbitrary(pawnMoves){case (from: RankAndFile, to: RankAndFile) =>
     aNewGame.move(from, to) must beRight

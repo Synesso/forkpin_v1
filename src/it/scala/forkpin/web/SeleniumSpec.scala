@@ -1,14 +1,12 @@
 package forkpin.web
 
 import org.specs2.Specification
-import org.specs2.specification.{Step, Fragments}
+import org.specs2.specification._
 import forkpin.TestConfig
 
-trait SeleniumSpec extends Specification with TestConfig {
+trait SeleniumSpec extends Specification with TestConfig with AfterAll {
 
-  override def map(fs: => Fragments) = fs ^ Step(close())
-
-  def close() {
+  def afterAll {
     webDriver.quit()
   }
 
