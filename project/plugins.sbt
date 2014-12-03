@@ -10,7 +10,7 @@ resolvers += {
 
 resolvers += Classpaths.typesafeResolver
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-start-script" % "0.9.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-start-script" % "0.10.0")
 
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "0.4.0")
 

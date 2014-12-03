@@ -7,7 +7,7 @@ import org.scalacheck.{Gen, Arbitrary}
 class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def is = s2"""
 
   Any square should
-    have $noThreatOnEmptyBoard
+    have no threat on an empty board $noThreatOnEmptyBoard
 
   A queen should
     threaten on the rank, file or diagonal $queenOnRankFileOrDiagonal
@@ -38,7 +38,7 @@ class ThreatSpec extends Specification with ScalaCheck with TestImplicits { def 
 
 """
 
-  def noThreatOnEmptyBoard = "no threat on an empty board" ! prop {(square: RankAndFile) =>
+  def noThreatOnEmptyBoard = prop {(square: RankAndFile) =>
     emptyGame.isThreatenedAt(square) must beFalse
   }
 
